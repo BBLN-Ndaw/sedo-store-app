@@ -12,7 +12,7 @@ data class User(
     @field:Indexed(unique = true)
     val username: String,
     val password: String,
-    val roles: List<String> = listOf("USER"),
+    val roles: List<String>,
     @field:CreatedDate
     val createdAt: java.time.Instant? = null
 )

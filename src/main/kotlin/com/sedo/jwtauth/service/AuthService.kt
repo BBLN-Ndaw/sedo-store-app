@@ -1,11 +1,8 @@
 package com.sedo.jwtauth.service
 
-import com.sedo.jwtauth.constants.Constants.Endpoints.ADMIN
 import com.sedo.jwtauth.exception.InvalidCredentialsException
-import com.sedo.jwtauth.exception.InvalidRolesException
 import com.sedo.jwtauth.exception.UserNotFoundException
-import com.sedo.jwtauth.model.dto.UserDto
-import com.sedo.jwtauth.model.entity.User
+import com.sedo.jwtauth.model.dto.LoginUser
 import com.sedo.jwtauth.repository.UserRepository
 import com.sedo.jwtauth.util.JwtUtil
 import org.slf4j.LoggerFactory
@@ -22,7 +19,7 @@ class AuthService @Autowired constructor(
     
     private val logger = LoggerFactory.getLogger(AuthService::class.java)
 
-    fun authenticate(user: User): String {
+    fun authenticate(user: LoginUser): String {
         logger.info("Authentication attempt for user: {}", user.username)
         
         val retrievedUser = userRepository.findByUsername(user.username)
