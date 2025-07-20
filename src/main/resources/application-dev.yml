@@ -1,0 +1,16 @@
+# MongoDB configuration for development
+spring:
+  application:
+    name: jwt-auth-app-dev
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: jwtauthdb
+      username: admin
+      password: password123
+      authentication-database: admin
+
+jwt:
+  secret: myDefaultSecretKeyForJwtTokenGeneration1234567890
+  expiration: 86400000 # 24h in ms

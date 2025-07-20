@@ -1,0 +1,14 @@
+# MongoDB configuration for tests
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: jwtauthdb_test
+      username: admin
+      password: password123
+      authentication-database: admin
+
+jwt:
+  secret: testSecretKeyForJwtTokenGeneration1234567890
+  expiration: 86400000 # 24h in ms
