@@ -5,8 +5,8 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.HELLO
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.MANAGER
-import com.sedo.jwtauth.model.dto.UserDto
-import com.sedo.jwtauth.mapper.toEntity
+import com.sedo.jwtauth.model.dto.LoginResponseDto
+import com.sedo.jwtauth.model.dto.LoginUserDto
 import com.sedo.jwtauth.service.AuthService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -25,10 +25,10 @@ class AuthController @Autowired constructor(
     private val logger = LoggerFactory.getLogger(AuthController::class.java)
 
     @PostMapping(LOGIN)
-    fun login(@Valid @RequestBody userDto: UserDto): ResponseEntity<String> {
+    fun login(@Valid @RequestBody userDto: LoginUserDto): ResponseEntity<LoginResponseDto> {
         logger.info("Login attempt for user: {}", userDto.username)
-        return authService.authenticate(userDto.toEntity())
-            .let { ResponseEntity.ok(it) }
+        return authService.authenticate(userDto)
+            .let { ResponseEntity.ok(LoginResponseDto(it)) }
     }
 
     @GetMapping(HELLO)
