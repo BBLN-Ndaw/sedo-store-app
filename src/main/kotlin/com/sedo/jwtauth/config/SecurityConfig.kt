@@ -26,9 +26,37 @@ class SecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
+                    // Public endpoints
                     .requestMatchers("/api/login").permitAll()
-                    .requestMatchers("/api/admin").hasAuthority("ADMIN")
-                    .requestMatchers("/api/users/**").hasAnyAuthority("ADMIN", "MANAGER")
+                    .requestMatchers("/actuator/**").permitAll()
+                    
+                    // Owner only endpoints (contrôle total)
+                    .requestMatchers("/api/admin").hasAuthority("OWNER")
+                    .requestMatchers("/api/users/**").hasAuthority("OWNER")
+                    .requestMatchers("/api/audit/**").hasAuthority("OWNER")
+                    
+                    // Categories - tous les utilisateurs authentifiés peuvent voir
+                    .requestMatchers("GET", "/api/categories/**").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
+                    .requestMatchers("/api/categories/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    
+                    // Suppliers - Owner et Employee
+                    .requestMatchers("/api/suppliers/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    
+                    // Products - lecture pour tous, modification pour Owner/Employee
+                    .requestMatchers("GET", "/api/products/**").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
+                    .requestMatchers("/api/products/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    
+                    // Orders - Clients peuvent créer, Owner/Employee gèrent
+                    .requestMatchers("POST", "/api/orders").hasAuthority("CLIENT")
+                    .requestMatchers("GET", "/api/orders/my").hasAuthority("CLIENT")
+                    .requestMatchers("/api/orders/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    
+                    // Sales - Point de vente (Owner/Employee uniquement)
+                    .requestMatchers("/api/sales/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    
+                    // Dashboard et rapports - Owner et Employee
+                    .requestMatchers("/api/dashboard/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    
                     .anyRequest().authenticated()
             }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)

@@ -4,7 +4,7 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.ADMIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.HELLO
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
-import com.sedo.jwtauth.constants.Constants.Endpoints.MANAGER
+import com.sedo.jwtauth.constants.Constants.Endpoints.EMPLOYEE
 import com.sedo.jwtauth.model.dto.LoginResponseDto
 import com.sedo.jwtauth.model.dto.LoginUserDto
 import com.sedo.jwtauth.service.AuthService
@@ -39,18 +39,18 @@ class AuthController @Autowired constructor(
     }
 
     @GetMapping(ADMIN)
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('OWNER')")
     fun admin(authentication: Authentication): ResponseEntity<String> {
-        logger.info("Admin area accessed by: {}", authentication.name)
+        logger.info("Owner area accessed by: {}", authentication.name)
         return authentication.name
-            .let { ResponseEntity.ok("Hello $it") }
+            .let { ResponseEntity.ok("Hello Owner $it") }
     }
 
-    @GetMapping(MANAGER)
-    @PreAuthorize("hasAuthority('MANAGER')")
+    @GetMapping(EMPLOYEE)
+    @PreAuthorize("hasAuthority('EMPLOYEE')")
     fun manager(authentication: Authentication): ResponseEntity<String> {
-        logger.info("Manager area accessed by: {}", authentication.name)
+        logger.info("Employee area accessed by: {}", authentication.name)
         return authentication.name
-            .let { ResponseEntity.ok("Hello $it") }
+            .let { ResponseEntity.ok("Hello Employee $it") }
     }
 }

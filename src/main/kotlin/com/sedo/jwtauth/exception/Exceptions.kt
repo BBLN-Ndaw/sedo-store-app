@@ -6,4 +6,10 @@ class UserNotFoundException(username: String) : RuntimeException("User Not Found
 
 class InvalidCredentialsException(message: String = "Invalid credentials") : RuntimeException(message)
 
-class InvalidRolesException(message: String = "roles must be equals to ADMIN or USER or MANAGER") : RuntimeException(message)
+class InvalidRolesException(message: String = "roles must be OWNER, EMPLOYEE or CLIENT") : RuntimeException(message)
+
+class ResourceNotFoundException(message: String) : RuntimeException(message)
+
+class InsufficientStockException(message: String) : RuntimeException(message)
+
+class InvalidOperationException(message: String) : RuntimeException(message)

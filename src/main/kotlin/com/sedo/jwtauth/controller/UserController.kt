@@ -18,7 +18,7 @@ class UserController @Autowired constructor(
 ) {
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('OWNER')")
     fun getAllUsers(): ResponseEntity<List<UserDto>> {
         return userService.getAllUsers()
             .map { it.toDto() }
@@ -26,7 +26,7 @@ class UserController @Autowired constructor(
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAuthority('OWNER')")
     fun getUserById(@PathVariable id: String): ResponseEntity<UserDto> {
         return userService.getUserById(id)
             .toDto()
@@ -34,15 +34,16 @@ class UserController @Autowired constructor(
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAuthority('OWNER')")
     fun createUser(@Valid @RequestBody user: UserDto): ResponseEntity<UserDto> {
             return userService.createUser(user.toEntity())
-                .let { ResponseEntity.ok(user) }
+                .toDto()
+                .let { ResponseEntity.ok(it) }
         }
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('OWNER')")
     fun updateUser(@PathVariable id: String, @Valid @RequestBody updateRequest: UserDto
     ): ResponseEntity<UserDto> {
         return userService.updateUser(
@@ -50,11 +51,11 @@ class UserController @Autowired constructor(
             username = updateRequest.username,
             password = updateRequest.password,
             roles = updateRequest.roles
-        ).let { ResponseEntity.ok(updateRequest) }
+        ).toDto().let { ResponseEntity.ok(it) }
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('OWNER')")
     fun deleteUser(@PathVariable id: String): ResponseEntity<UserDto> {
         return userService.deleteUser(id)
             .toDto()

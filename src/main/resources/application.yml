@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: sedo-jwt-auth-app
+    name: sedo-store-management-system
   data:
     mongodb:
       host: localhost
@@ -12,8 +12,28 @@ spring:
       username: admin
       password: password123
       authentication-database: admin
+  cache:
+    type: simple
 
 # JWT configuration
 jwt:
   secret: myDefaultSecretKeyForJwtTokenGeneration1234567890
   expiration: 86400000 # 24h in ms
+
+# Application configuration
+app:
+  store:
+    name: "Magasin SEDO"
+    tax-rate: 0.20 # 20% TVA France
+    currency: "EUR"
+    timezone: "Europe/Paris"
+
+# Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
