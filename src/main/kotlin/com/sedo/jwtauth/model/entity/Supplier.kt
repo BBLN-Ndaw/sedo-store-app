@@ -11,26 +11,28 @@ import java.time.Instant
 data class Supplier(
     @Id
     val id: String? = null,
-    
+
     @field:Indexed(unique = true)
     val name: String,
-    
-    val contactPerson: String? = null,
-    
+
+    val contactPersonName: String? = null,
+
+    val category: String? = null,
+
     val email: String? = null,
-    
+
     val phone: String? = null,
-    
+
     val address: Address? = null,
-    
+
     val isActive: Boolean = true,
-    
+
     @field:CreatedDate
     val createdAt: Instant? = null,
-    
+
     @field:LastModifiedDate
     val updatedAt: Instant? = null,
-    
+
     val createdBy: String? = null,
     val updatedBy: String? = null
 )

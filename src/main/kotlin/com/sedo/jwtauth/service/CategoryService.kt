@@ -56,7 +56,7 @@ class CategoryService(
         val savedCategory = categoryRepository.save(category)
         
         auditService.logAction(
-            userId = currentUser,
+            userName = currentUser,
             action = "CREATE",
             entityType = "Category",
             entityId = savedCategory.id,
@@ -96,7 +96,7 @@ class CategoryService(
         val savedCategory = categoryRepository.save(updatedCategory)
         
         auditService.logAction(
-            userId = currentUser,
+            userName = currentUser,
             action = "UPDATE",
             entityType = "Category",
             entityId = savedCategory.id,
@@ -129,7 +129,7 @@ class CategoryService(
         categoryRepository.save(deletedCategory)
         
         auditService.logAction(
-            userId = currentUser,
+            userName = currentUser,
             action = "DELETE",
             entityType = "Category",
             entityId = deletedCategory.id,

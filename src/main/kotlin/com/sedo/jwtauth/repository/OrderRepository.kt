@@ -6,8 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository
 import java.time.Instant
 
 interface OrderRepository : MongoRepository<Order, String> {
-    fun findByCustomerId(customerId: String): List<Order>
-    fun findByStatus(status: OrderStatus): List<Order>
-    fun findByCreatedAtBetween(start: Instant, end: Instant): List<Order>
-    fun findByProcessedBy(processedBy: String): List<Order>
+    fun findByCustomerIdOrderByCreatedAtDesc(customerId: String): List<Order>
+    fun findByStatusOrderByCreatedAtDesc(status: OrderStatus): List<Order>
+    fun findAllByOrderByCreatedAtDesc(): List<Order>
 }

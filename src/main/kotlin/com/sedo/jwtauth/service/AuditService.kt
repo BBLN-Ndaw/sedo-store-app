@@ -14,7 +14,7 @@ class AuditService(
     private val logger = LoggerFactory.getLogger(AuditService::class.java)
     
     fun logAction(
-        userId: String,
+        userName: String,
         action: String,
         entityType: String,
         entityId: String? = null,
@@ -26,7 +26,7 @@ class AuditService(
     ) {
         try {
             val auditLog = AuditLog(
-                userId = userId,
+                userName = userName,
                 action = action,
                 entityType = entityType,
                 entityId = entityId,
@@ -39,9 +39,9 @@ class AuditService(
             )
             
             auditLogRepository.save(auditLog)
-            logger.debug("Audit log created for user {} action {}", userId, action)
+            logger.debug("Audit log created for user {} action {}", userName, action)
         } catch (e: Exception) {
-            logger.error("Failed to create audit log for user {} action {}: {}", userId, action, e.message)
+            logger.error("Failed to create audit log for user {} action {}: {}", userName, action, e.message)
         }
     }
     
@@ -53,7 +53,7 @@ class AuditService(
         endDate: Instant? = null
     ): List<AuditLog> {
         return when {
-            userId != null -> auditLogRepository.findByUserId(userId)
+            userId != null -> auditLogRepository.findByUserName(userId)
             entityType != null && entityId != null -> auditLogRepository.findByEntityTypeAndEntityId(entityType, entityId)
             startDate != null && endDate != null -> auditLogRepository.findByTimestampBetween(startDate, endDate)
             else -> auditLogRepository.findAll()

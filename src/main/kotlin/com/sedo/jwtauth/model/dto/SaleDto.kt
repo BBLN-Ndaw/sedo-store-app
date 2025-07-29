@@ -9,14 +9,15 @@ import java.math.BigDecimal
 data class SaleDto(
     val id: String? = null,
     val saleNumber: String? = null,
-    val customerId: String? = null,
-    
+    val customerName: String? = null,
+
     @field:NotEmpty(message = "Sale must have at least one item")
     val items: List<SaleItem>,
-    
+
     val paymentMethod: PaymentMethod,
     val subtotal: BigDecimal? = null,
     val discountAmount: BigDecimal = BigDecimal.ZERO,
+    val taxRate: BigDecimal? = null,
     val taxAmount: BigDecimal = BigDecimal.ZERO,
     val totalAmount: BigDecimal? = null,
     val cashReceived: BigDecimal? = null,
@@ -24,11 +25,11 @@ data class SaleDto(
 )
 
 data class CreateSaleRequest(
-    val customerId: String? = null,
-    
+    val customerName: String? = null,
+
     @field:NotEmpty(message = "Sale must have at least one item")
     val items: List<SaleItemRequest>,
-    
+
     val paymentMethod: PaymentMethod,
     val discountAmount: BigDecimal = BigDecimal.ZERO,
     val cashReceived: BigDecimal? = null

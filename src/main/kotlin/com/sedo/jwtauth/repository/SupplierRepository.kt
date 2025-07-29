@@ -5,5 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository
 
 interface SupplierRepository : MongoRepository<Supplier, String> {
     fun findByIsActiveTrue(): List<Supplier>
-    fun findByNameContainingIgnoreCase(name: String): List<Supplier>
+    fun findByCategoryContainingIgnoreCase(category: String): List<Supplier>
+    fun findByNameContainingIgnoreCaseAndIsActiveTrue(name: String): List<Supplier>
 }

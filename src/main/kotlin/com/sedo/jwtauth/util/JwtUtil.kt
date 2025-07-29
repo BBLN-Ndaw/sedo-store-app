@@ -17,8 +17,8 @@ class JwtUtil {
     @Value("\${jwt.secret:myDefaultSecretKeyForJwtTokenGeneration1234567890}")
     private lateinit var secretKey: String
     
-    @Value("\${jwt.expiration:86400000}")
-    private var expiration: Long = 86400000 // 24h by default
+    @Value("\${jwt.expiration:3600000}")
+    private var expiration: Long = 3600000 // 1h by default
     
     private val secretKeyBytes: SecretKey by lazy {
         Keys.hmacShaKeyFor(secretKey.toByteArray())

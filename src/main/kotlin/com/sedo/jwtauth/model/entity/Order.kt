@@ -13,7 +13,9 @@ data class Order(
     val id: String? = null,
     
     val orderNumber: String, // Numéro de commande unique
-    
+
+    val customerName: String, // customer name
+
     val customerId: String, // ID du client (User)
     
     val items: List<OrderItem>,
@@ -36,6 +38,19 @@ data class Order(
     
     val actualPickupDate: Instant? = null, // Date de retrait effective
     
+    // Horodatage des changements de statut
+    val confirmedAt: Instant? = null,
+    val confirmedBy: String? = null,
+    val preparingAt: Instant? = null,
+    val preparingBy: String? = null,
+    val readyAt: Instant? = null,
+    val readyBy: String? = null,
+    val completedAt: Instant? = null,
+    val completedBy: String? = null,
+    val cancelledAt: Instant? = null,
+    val cancelledBy: String? = null,
+    val cancelReason: String? = null,
+    
     @field:CreatedDate
     val createdAt: Instant? = null,
     
@@ -47,6 +62,7 @@ data class Order(
 
 data class OrderItem(
     val productId: String,
+    val productName: String, // Nom du produit
     val quantity: Int,
     val unitPrice: BigDecimal,
     val totalPrice: BigDecimal
@@ -56,7 +72,7 @@ enum class OrderStatus {
     PENDING,      // En attente
     CONFIRMED,    // Confirmée
     PREPARING,    // En préparation
-    READY,        // Prête pour retrait
+    READY_FOR_PICKUP,        // Prête pour retrait
     COMPLETED,    // Terminée
     CANCELLED     // Annulée
 }

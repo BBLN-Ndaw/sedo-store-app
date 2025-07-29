@@ -30,27 +30,4 @@ class AuthController @Autowired constructor(
         return authService.authenticate(userDto)
             .let { ResponseEntity.ok(LoginResponseDto(it)) }
     }
-
-    @GetMapping(HELLO)
-    fun hello(authentication: Authentication): ResponseEntity<String> {
-        logger.debug("Hello endpoint called by: {}", authentication.name)
-        return authentication.name
-            .let { ResponseEntity.ok("Hello $it") }
-    }
-
-    @GetMapping(ADMIN)
-    @PreAuthorize("hasAuthority('OWNER')")
-    fun admin(authentication: Authentication): ResponseEntity<String> {
-        logger.info("Owner area accessed by: {}", authentication.name)
-        return authentication.name
-            .let { ResponseEntity.ok("Hello Owner $it") }
-    }
-
-    @GetMapping(EMPLOYEE)
-    @PreAuthorize("hasAuthority('EMPLOYEE')")
-    fun manager(authentication: Authentication): ResponseEntity<String> {
-        logger.info("Employee area accessed by: {}", authentication.name)
-        return authentication.name
-            .let { ResponseEntity.ok("Hello Employee $it") }
-    }
 }

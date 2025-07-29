@@ -6,10 +6,10 @@ import java.time.LocalDate
 
 interface ProductRepository : MongoRepository<Product, String> {
     fun findByIsActiveTrue(): List<Product>
-    fun findByCategoryId(categoryId: String): List<Product>
-    fun findBySupplierId(supplierId: String): List<Product>
-    fun findByStockQuantityLessThanMinimumStock(): List<Product> // Produits en rupture
-    fun findByNameContainingIgnoreCaseOrSkuContainingIgnoreCase(name: String, sku: String): List<Product>
-    fun findByExpirationDateBefore(date: LocalDate): List<Product> // Produits proches de l'expiration
-    fun findByTagsContaining(tag: String): List<Product>
+    fun findByCategoryIdAndIsActiveTrue(categoryId: String): List<Product>
+    fun findBySupplierIdAndIsActiveTrue(supplierId: String): List<Product>
+    fun findByStockQuantityLessThanAndIsActiveTrue(threshold: Int): List<Product>
+    fun findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndIsActiveTrue(name: String, sku: String): List<Product>
+    fun findByExpirationDateBeforeAndIsActiveTrue(date: LocalDate): List<Product>
+    fun findByExpirationDateBetweenAndIsActiveTrue(startDate: LocalDate, endDate: LocalDate): List<Product>
 }

@@ -7,5 +7,5 @@ import java.time.Instant
 interface SaleRepository : MongoRepository<Sale, String> {
     fun findByProcessedBy(processedBy: String): List<Sale>
     fun findByCreatedAtBetween(start: Instant, end: Instant): List<Sale>
-    fun findByCustomerId(customerId: String): List<Sale>
+    fun findByCustomerName(customerId: String): List<Sale>
 }

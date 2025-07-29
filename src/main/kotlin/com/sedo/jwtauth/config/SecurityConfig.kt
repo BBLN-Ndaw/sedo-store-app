@@ -3,6 +3,11 @@ package com.sedo.jwtauth.config
 import com.sedo.jwtauth.filter.JwtAuthFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpMethod.DELETE
+import org.springframework.http.HttpMethod.GET
+import org.springframework.http.HttpMethod.POST
+import org.springframework.http.HttpMethod.PUT
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -43,12 +48,14 @@ class SecurityConfig(
                     .requestMatchers("/api/suppliers/**").hasAnyAuthority("OWNER", "EMPLOYEE")
                     
                     // Products - lecture pour tous, modification pour Owner/Employee
-                    .requestMatchers("GET", "/api/products/**").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
-                    .requestMatchers("/api/products/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    .requestMatchers(GET, "/api/products/**").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
+                    .requestMatchers(POST, "/api/products").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    .requestMatchers(PUT, "/api/products/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+                    .requestMatchers(DELETE, "/api/products/**").hasAuthority("OWNER")
                     
-                    // Orders - Clients peuvent créer, Owner/Employee gèrent
-                    .requestMatchers("POST", "/api/orders").hasAuthority("CLIENT")
-                    .requestMatchers("GET", "/api/orders/my").hasAuthority("CLIENT")
+                    // Orders - Clients peuvent créer et voir les leurs, Owner/Employee gèrent tout
+                    .requestMatchers(POST, "/api/orders").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
+                    .requestMatchers(GET, "/api/orders/{id}").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
                     .requestMatchers("/api/orders/**").hasAnyAuthority("OWNER", "EMPLOYEE")
                     
                     // Sales - Point de vente (Owner/Employee uniquement)
