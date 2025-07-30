@@ -13,7 +13,7 @@ class CustomUserDetails(private val user: User) : UserDetails {
 
     override fun getPassword(): String = user.password
 
-    override fun getUsername(): String = user.username
+    override fun getUsername(): String = user.userName
 
     override fun isAccountNonExpired(): Boolean = true
 

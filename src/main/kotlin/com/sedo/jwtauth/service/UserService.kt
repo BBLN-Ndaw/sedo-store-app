@@ -1,6 +1,10 @@
 package com.sedo.jwtauth.service
 
+import com.sedo.jwtauth.exception.InvalidPasswordException
 import com.sedo.jwtauth.exception.UserNotFoundException
+import com.sedo.jwtauth.mapper.toDto
+import com.sedo.jwtauth.model.dto.CreateUserDto
+import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -42,27 +46,58 @@ class UserService @Autowired constructor(
             }
     }
 
-    fun createUser(user: User): User {
-        logger.info("Creating new user: {} with role: {}", user.username, user.roles.joinToString())
-        userRepository.findByUsername(user.username)?.let { logger.warn("Attempt to create existing user: {}", user.username)
-            throw IllegalArgumentException("A user with this username already exists")
+    fun createUser(createUserDto: CreateUserDto): User {
+        logger.info("Creating new user: {} with role: {}", createUserDto.username, createUserDto.roles.joinToString())
+        
+        // Vérifier si l'utilisateur existe déjà
+        userRepository.findByUsername(createUserDto.username)?.let { 
+            logger.warn("Attempt to create existing user: {}", createUserDto.username)
+            throw IllegalArgumentException("A user with username '${createUserDto.username}' already exists")
         }
-        val savedUser = userRepository.save(User(username = user.username, password = passwordEncoder.encode(user.password), roles = user.roles))
-        logger.info("User created successfully: {} (ID: {})", user.username, savedUser.id)
+        
+        // Créer l'utilisateur avec le password hashé
+        val user = User(
+            userName = createUserDto.username,
+            password = passwordEncoder.encode(createUserDto.password), // ✅ Hash du password
+            firstName = createUserDto.firstName,
+            lastName = createUserDto.lastName,
+            email = createUserDto.email,
+            isActive = createUserDto.isActive,
+            roles = createUserDto.roles
+        )
+        
+        val savedUser = userRepository.save(user)
+        logger.info("User created successfully: {} (ID: {})", savedUser.userName, savedUser.id)
         return savedUser
     }
 
-    fun updateUser(id: String, username: String?, password: String?, roles: List<String>?): User {
-        logger.info("Updating user ID: {}", id)
-        val user = getUserById(id)
-        val updatedUser = user.copy(
-            username = username ?: user.username,
-            password = password?.let { passwordEncoder.encode(it) } ?: user.password,
+    fun updateUser(idOldUser: String, userName: String?, firstName: String?, lastName: String?, email: String?, isActive: Boolean?, roles: List<String>?): User {
+
+        val user = getUserById(idOldUser)
+        val updatedUser = user!!.copy(
+            userName = userName ?: user.userName,
+            firstName = firstName ?: user.firstName,
+            lastName = lastName ?: user.lastName,
+            email = email ?: user.email,
+            isActive = isActive ?: user.isActive,
             roles = roles ?: user.roles
         )
-        val savedUser = userRepository.save(updatedUser)
-        logger.info("User updated successfully: {}", savedUser.username)
-        return savedUser
+        userRepository.save(updatedUser)
+        return updatedUser
+    }
+
+    fun updatePassword(id: String, currentPassword: String, newPassword: String) {
+        logger.info("Updating password for user ID: {}", id)
+        val user = getUserById(id)
+        
+        if (!passwordEncoder.matches(currentPassword, user.password)) {
+            logger.warn("Invalid current password for user ID: {}", id)
+            throw InvalidPasswordException("Current password is incorrect")
+        }
+
+        val updatedUser = user.copy(password = passwordEncoder.encode(newPassword))
+        userRepository.save(updatedUser)
+        logger.info("Password updated successfully for user ID: {}", id)
     }
 
     fun deleteUser(id: String): User {

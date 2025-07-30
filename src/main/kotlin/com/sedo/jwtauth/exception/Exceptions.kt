@@ -13,3 +13,5 @@ class ResourceNotFoundException(message: String) : RuntimeException(message)
 class InsufficientStockException(message: String) : RuntimeException(message)
 
 class InvalidOperationException(message: String) : RuntimeException(message)
+
+class InvalidPasswordException(message: String = "Invalid password") : RuntimeException(message)

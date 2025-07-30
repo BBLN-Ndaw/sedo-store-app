@@ -34,24 +34,24 @@ class DataInitializer @Autowired constructor(
 
         val defaultUsers = listOf(
             User(
-                username = "owner",
+                userName = "owner",
                 password = passwordEncoder.encode("password"),
                 roles = listOf("OWNER")
             ),
             User(
-                username = "employee",
+                userName = "employee",
                 password = passwordEncoder.encode("password"),
                 roles = listOf("EMPLOYEE")
             ),
             User(
-                username = "client",
+                userName = "client",
                 password = passwordEncoder.encode("password"),
                 roles = listOf("CLIENT")
             )
         )
         
         defaultUsers.forEach { user ->
-            if (userRepository.findByUsername(user.username) == null) {
+            if (userRepository.findByUsername(user.userName) == null) {
                 userRepository.save(user)
                 logger.info("Default {} user created", user.roles.joinToString())
             } else {

@@ -10,8 +10,12 @@ data class User(
     @Id
     val id: String? = null,
     @field:Indexed(unique = true)
-    val username: String,
+    val userName: String,
     val password: String,
+    val email: String,
+    val firstName: String,
+    val lastName: String,
+    val isActive: Boolean,
     val roles: List<String>,
     @field:CreatedDate
     val createdAt: java.time.Instant? = null
