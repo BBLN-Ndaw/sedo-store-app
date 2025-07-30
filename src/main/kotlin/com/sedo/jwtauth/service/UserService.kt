@@ -2,22 +2,19 @@ package com.sedo.jwtauth.service
 
 import com.sedo.jwtauth.exception.InvalidPasswordException
 import com.sedo.jwtauth.exception.UserNotFoundException
-import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.model.dto.CreateUserDto
-import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Service
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.stereotype.Service
 import kotlin.jvm.optionals.getOrNull
 
 @Service
 class UserService @Autowired constructor(
     private val userRepository: UserRepository,
-    private val passwordEncoder: BCryptPasswordEncoder
-) {
+    private val passwordEncoder: BCryptPasswordEncoder) {
     
     private val logger = LoggerFactory.getLogger(UserService::class.java)
 
@@ -39,7 +36,7 @@ class UserService @Autowired constructor(
 
     fun getUserByUsername(username: String): User {
         logger.debug("Retrieving user: {}", username)
-        return userRepository.findByUsername(username)
+        return userRepository.findByUserName(username)
             ?: run {
                 logger.error("User not found: {}", username)
                 throw UserNotFoundException(username)
@@ -50,7 +47,7 @@ class UserService @Autowired constructor(
         logger.info("Creating new user: {} with role: {}", createUserDto.username, createUserDto.roles.joinToString())
         
         // Vérifier si l'utilisateur existe déjà
-        userRepository.findByUsername(createUserDto.username)?.let { 
+        userRepository.findByUserName(createUserDto.username)?.let {
             logger.warn("Attempt to create existing user: {}", createUserDto.username)
             throw IllegalArgumentException("A user with username '${createUserDto.username}' already exists")
         }

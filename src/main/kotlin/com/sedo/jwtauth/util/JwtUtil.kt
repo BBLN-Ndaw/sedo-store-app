@@ -1,18 +1,24 @@
 package com.sedo.jwtauth.util
 
 import com.sedo.jwtauth.exception.JwtException
+import com.sedo.jwtauth.exception.NoTokenInAuthHeaderException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtException as JJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.*
 import javax.crypto.SecretKey
+import kotlin.text.startsWith
+import kotlin.text.substring
 
 @Component
 class JwtUtil {
+    private val logger = getLogger(JwtUtil::class.java)
     
     @Value("\${jwt.secret:myDefaultSecretKeyForJwtTokenGeneration1234567890}")
     private lateinit var secretKey: String
@@ -50,6 +56,21 @@ class JwtUtil {
             throw JwtException("Invalid JWT Token", e)
         } catch (e: Exception) {
             throw JwtException("Error while validating token", e)
+        }
+    }
+    fun isValidToken(token: String): Boolean {
+        return try {
+            Jwts.parserBuilder()
+                .setSigningKey(secretKeyBytes)
+                .build()
+                .parseClaimsJws(token)
+            true
+        } catch (e: JJwtException) {
+            logger.warn("Invalid JWT Token: {}", e.message)
+            false
+        } catch (e: Exception) {
+            logger.error("Error while validating token: {}", e.message)
+            false
         }
     }
 }

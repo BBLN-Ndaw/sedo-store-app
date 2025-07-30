@@ -1,11 +1,14 @@
 package com.sedo.jwtauth.controller
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.USER
+import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
+import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.model.dto.CreateUserDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
 import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.service.UserService
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -21,10 +24,25 @@ class UserController @Autowired constructor(
 ) {
 
     @GetMapping
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('$ADMIN_ROLE')")
     fun getAllUsers(): ResponseEntity<List<UserDto>> {
         return userService.getAllUsers()
             .map { it.toDto() }
+            .let { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun createUser(@Valid @RequestBody createUserDto: CreateUserDto): ResponseEntity<UserDto> {
+        return userService.createUser(createUserDto)
+            .toDto()
+            .let { ResponseEntity.status(HttpStatus.CREATED).body(it) }
+    }
+
+    @GetMapping("/profile")
+    fun getUserProfile(authentication: Authentication): ResponseEntity<UserDto> {
+        return userService.getUserByUsername(authentication.name)
+            .toDto()
             .let { ResponseEntity.ok(it) }
     }
 
@@ -36,20 +54,7 @@ class UserController @Autowired constructor(
             .let { ResponseEntity.ok(it) }
     }
 
-    @GetMapping("/me")
-    fun getMyProfile(authentication: Authentication): ResponseEntity<UserDto> {
-        return userService.getUserByUsername(authentication.name)
-            .toDto()
-            .let { ResponseEntity.ok(it) }
-    }
 
-    @PostMapping
-    @PreAuthorize("hasAuthority('OWNER')")
-    fun createUser(@Valid @RequestBody createUserDto: CreateUserDto): ResponseEntity<UserDto> {
-        return userService.createUser(createUserDto)
-            .toDto()
-            .let { ResponseEntity.status(HttpStatus.CREATED).body(it) }
-    }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('OWNER')")

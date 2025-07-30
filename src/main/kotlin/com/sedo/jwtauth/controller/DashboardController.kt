@@ -17,7 +17,7 @@ class DashboardController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getDashboard(): ResponseEntity<Map<String, Any>> {
         val today = LocalDate.now()
         
@@ -115,7 +115,7 @@ class DashboardController(
     }
     
     @GetMapping("/sales-today")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getSalesToday(): ResponseEntity<Map<String, Any>> {
         val todaysSales = saleService.getTodaysSales()
         val todaysRevenue = saleService.getDailySalesTotal(LocalDate.now())
@@ -129,7 +129,7 @@ class DashboardController(
     }
     
     @GetMapping("/orders-summary")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getOrdersSummary(): ResponseEntity<Map<String, Any>> {
         val stats = orderService.getOrderStats()
         val pending = orderService.getPendingOrders()
@@ -159,7 +159,7 @@ class DashboardController(
     }
     
     @GetMapping("/inventory-alerts")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getInventoryAlerts(): ResponseEntity<Map<String, Any>> {
         val lowStockProducts = productService.getLowStockProducts(10)
         val expiredProducts = productService.getExpiredProducts()

@@ -3,10 +3,12 @@ package com.sedo.jwtauth.service
 import com.sedo.jwtauth.exception.InvalidCredentialsException
 import com.sedo.jwtauth.exception.UserNotFoundException
 import com.sedo.jwtauth.model.dto.LoginUserDto
+import com.sedo.jwtauth.model.dto.ValidatedTokentDto
 import com.sedo.jwtauth.repository.UserRepository
 import com.sedo.jwtauth.util.JwtUtil
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 
@@ -22,7 +24,7 @@ class AuthService @Autowired constructor(
     fun authenticate(user: LoginUserDto): String {
         logger.info("Authentication attempt for user: {}", user.username)
         
-        val retrievedUser = userRepository.findByUsername(user.username)
+        val retrievedUser = userRepository.findByUserName(user.username)
             ?: run {
                 logger.warn("User not found: {}", user.username)
                 throw UserNotFoundException(user.username)
@@ -35,6 +37,15 @@ class AuthService @Autowired constructor(
         
         logger.info("Authentication successful for user: {}", user.username)
         return jwtUtil.generateToken(user.username, retrievedUser.roles)
+    }
+    fun getValidatedToken(token: String): ValidatedTokentDto {
+        logger.debug("Validating token: {}", token)
+        return if(jwtUtil.isValidToken(token)){
+            ValidatedTokentDto(true, "ACCEPTED")
+        }
+        else {
+            ValidatedTokentDto(false, "REJECTED")
+        }
     }
 
 }

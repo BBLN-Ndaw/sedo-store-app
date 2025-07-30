@@ -15,19 +15,19 @@ class AuditController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getAllAuditLogs(): ResponseEntity<List<AuditLog>> {
         return ResponseEntity.ok(auditService.getAuditLogs())
     }
     
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getAuditLogsByUser(@PathVariable userId: String): ResponseEntity<List<AuditLog>> {
         return ResponseEntity.ok(auditService.getAuditLogs(userId = userId))
     }
     
     @GetMapping("/entity/{entityType}/{entityId}")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getAuditLogsByEntity(
         @PathVariable entityType: String,
         @PathVariable entityId: String
@@ -36,7 +36,7 @@ class AuditController(
     }
     
     @GetMapping("/date-range")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getAuditLogsByDateRange(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startDate: Instant,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endDate: Instant
@@ -45,7 +45,7 @@ class AuditController(
     }
     
     @GetMapping("/actions")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getAvailableActions(): ResponseEntity<List<String>> {
         val actions = listOf(
             "CREATE", "UPDATE", "DELETE", "LOGIN", "LOGOUT",
@@ -55,7 +55,7 @@ class AuditController(
     }
     
     @GetMapping("/entity-types")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun getAvailableEntityTypes(): ResponseEntity<List<String>> {
         val entityTypes = listOf(
             "User", "Category", "Supplier", "Product", 

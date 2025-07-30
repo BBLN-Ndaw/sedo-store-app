@@ -48,14 +48,14 @@ curl -X POST http://localhost:8080/api/login \
 GET /api/users
 Authorization: Bearer <token>
 ```
-*Requires: OWNER role*
+*Requires: ADMIN role*
 
 #### Get User by ID
 ```http
 GET /api/users/{id}
 Authorization: Bearer <token>
 ```
-*Requires: OWNER role*
+*Requires: ADMIN role*
 
 #### Create User
 ```http
@@ -69,7 +69,7 @@ Content-Type: application/json
   "roles": ["CLIENT"]
 }
 ```
-*Requires: OWNER role*
+*Requires: ADMIN role*
 
 #### Update User
 ```http
@@ -83,14 +83,14 @@ Content-Type: application/json
   "roles": ["EMPLOYEE"]
 }
 ```
-*Requires: OWNER role*
+*Requires: ADMIN role*
 
 #### Delete User
 ```http
 DELETE /api/users/{id}
 Authorization: Bearer <token>
 ```
-*Requires: OWNER role*
+*Requires: ADMIN role*
 
 ### 📂 Category Management
 
@@ -142,7 +142,7 @@ Content-Type: application/json
   "isActive": true
 }
 ```
-*Requires: OWNER or EMPLOYEE role*
+*Requires: ADMIN or EMPLOYEE role*
 
 #### Update Category
 ```http
@@ -157,14 +157,14 @@ Content-Type: application/json
   "isActive": true
 }
 ```
-*Requires: OWNER or EMPLOYEE role*
+*Requires: ADMIN or EMPLOYEE role*
 
 #### Delete Category
 ```http
 DELETE /api/categories/{id}
 Authorization: Bearer <token>
 ```
-*Requires: OWNER role*
+*Requires: ADMIN role*
 
 ## Error Responses
 

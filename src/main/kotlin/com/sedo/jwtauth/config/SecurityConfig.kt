@@ -1,5 +1,6 @@
 package com.sedo.jwtauth.config
 
+import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.filter.JwtAuthFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -33,30 +34,29 @@ class SecurityConfig(
                 auth
                     // Public endpoints
                     .requestMatchers("/api/login").permitAll()
-                    .requestMatchers("/actuator/**").permitAll()
-                    
-                    // Owner only endpoints (contrôle total)
-                    .requestMatchers("/api/admin").hasAuthority("OWNER")
+
+                    // Admin only endpoints (contrôle total)
+                    .requestMatchers("/api/admin").hasAuthority(ADMIN_ROLE)
 //
-//                    // Suppliers - Owner et Employee
-//                    .requestMatchers("/api/suppliers/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+//                    // Suppliers - Admin et Employee
+//                    .requestMatchers("/api/suppliers/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
 //
-//                    // Products - lecture pour tous, modification pour Owner/Employee
-//                    .requestMatchers(GET, "/api/products/**").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
-//                    .requestMatchers(POST, "/api/products").hasAnyAuthority("OWNER", "EMPLOYEE")
-//                    .requestMatchers(PUT, "/api/products/**").hasAnyAuthority("OWNER", "EMPLOYEE")
-//                    .requestMatchers(DELETE, "/api/products/**").hasAuthority("OWNER")
+//                    // Products - lecture pour tous, modification pour Admin/Employee
+//                    .requestMatchers(GET, "/api/products/**").hasAnyAuthority("ADMIN", "EMPLOYEE", "CLIENT")
+//                    .requestMatchers(POST, "/api/products").hasAnyAuthority("ADMIN", "EMPLOYEE")
+//                    .requestMatchers(PUT, "/api/products/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
+//                    .requestMatchers(DELETE, "/api/products/**").hasAuthority("ADMIN")
 //
-//                    // Orders - Clients peuvent créer et voir les leurs, Owner/Employee gèrent tout
-//                    .requestMatchers(POST, "/api/orders").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
-//                    .requestMatchers(GET, "/api/orders/{id}").hasAnyAuthority("OWNER", "EMPLOYEE", "CLIENT")
-//                    .requestMatchers("/api/orders/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+//                    // Orders - Clients peuvent créer et voir les leurs, Admin/Employee gèrent tout
+//                    .requestMatchers(POST, "/api/orders").hasAnyAuthority("ADMIN", "EMPLOYEE", "CLIENT")
+//                    .requestMatchers(GET, "/api/orders/{id}").hasAnyAuthority("ADMIN", "EMPLOYEE", "CLIENT")
+//                    .requestMatchers("/api/orders/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
 //
-//                    // Sales - Point de vente (Owner/Employee uniquement)
-//                    .requestMatchers("/api/sales/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+//                    // Sales - Point de vente (Admin/Employee uniquement)
+//                    .requestMatchers("/api/sales/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
 //
-//                    // Dashboard et rapports - Owner et Employee
-//                    .requestMatchers("/api/dashboard/**").hasAnyAuthority("OWNER", "EMPLOYEE")
+//                    // Dashboard et rapports - Admin et Employee
+//                    .requestMatchers("/api/dashboard/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
 //
                     .anyRequest().authenticated()
             }

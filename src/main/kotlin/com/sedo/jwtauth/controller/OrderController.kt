@@ -17,50 +17,50 @@ class OrderController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getAllOrders(): ResponseEntity<List<Order>> {
         return ResponseEntity.ok(orderService.getAllOrders())
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun getOrderById(@PathVariable id: String): ResponseEntity<Order> {
         return ResponseEntity.ok(orderService.getOrderById(id))
     }
     
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getOrdersByStatus(@PathVariable status: OrderStatus): ResponseEntity<List<Order>> {
         return ResponseEntity.ok(orderService.getOrdersByStatus(status))
     }
     
     @GetMapping("/customer/{customerId}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getOrdersByCustomer(@PathVariable customerId: String): ResponseEntity<List<Order>> {
         return ResponseEntity.ok(orderService.getOrdersByCustomer(customerId))
     }
     
     @GetMapping("/pending")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getPendingOrders(): ResponseEntity<List<Order>> {
         return ResponseEntity.ok(orderService.getPendingOrders())
     }
     
     @GetMapping("/ready-for-pickup")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getReadyForPickupOrders(): ResponseEntity<List<Order>> {
         return ResponseEntity.ok(orderService.getReadyForPickupOrders())
     }
     
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun createOrder(@Valid @RequestBody orderDto: OrderDto): ResponseEntity<Order> {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(orderService.createOrder(orderDto))
     }
     
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun updateOrderStatus(
         @PathVariable id: String,
         @RequestBody statusUpdate: Map<String, String>
@@ -72,31 +72,31 @@ class OrderController(
     }
     
     @PutMapping("/{id}/confirm")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun confirmOrder(@PathVariable id: String): ResponseEntity<Order> {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.CONFIRMED))
     }
     
     @PutMapping("/{id}/prepare")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun prepareOrder(@PathVariable id: String): ResponseEntity<Order> {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.PREPARING))
     }
     
     @PutMapping("/{id}/ready")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun markOrderReady(@PathVariable id: String): ResponseEntity<Order> {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.READY_FOR_PICKUP))
     }
     
     @PutMapping("/{id}/complete")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun completeOrder(@PathVariable id: String): ResponseEntity<Order> {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.COMPLETED))
     }
     
     @PutMapping("/{id}/cancel")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun cancelOrder(
         @PathVariable id: String,
         @RequestBody cancelRequest: Map<String, String>
@@ -106,7 +106,7 @@ class OrderController(
     }
     
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getOrderStats(): ResponseEntity<Map<String, Any>> {
         return ResponseEntity.ok(orderService.getOrderStats())
     }

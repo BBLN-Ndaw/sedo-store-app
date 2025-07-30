@@ -18,25 +18,25 @@ class SaleController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getAllSales(): ResponseEntity<List<Sale>> {
         return ResponseEntity.ok(saleService.getAllSales())
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getSaleById(@PathVariable id: String): ResponseEntity<Sale> {
         return ResponseEntity.ok(saleService.getSaleById(id))
     }
     
     @GetMapping("/today")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getTodaysSales(): ResponseEntity<List<Sale>> {
         return ResponseEntity.ok(saleService.getTodaysSales())
     }
     
     @GetMapping("/date/{date}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getSalesByDate(
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
     ): ResponseEntity<List<Sale>> {
@@ -44,7 +44,7 @@ class SaleController(
     }
     
     @GetMapping("/date-range")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getSalesByDateRange(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate
@@ -53,7 +53,7 @@ class SaleController(
     }
     
     @GetMapping("/daily-total/{date}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getDailySalesTotal(
         @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
     ): ResponseEntity<Map<String, Any>> {
@@ -65,14 +65,14 @@ class SaleController(
     }
     
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun createSale(@Valid @RequestBody saleDto: SaleDto): ResponseEntity<Sale> {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(saleService.createSale(saleDto))
     }
     
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getSalesStats(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) startDate: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) endDate: LocalDate
@@ -81,7 +81,7 @@ class SaleController(
     }
     
     @GetMapping("/top-products")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getTopSellingProducts(@RequestParam(defaultValue = "10") limit: Int): ResponseEntity<List<Map<String, Any>>> {
         return ResponseEntity.ok(saleService.getTopSellingProducts(limit))
     }

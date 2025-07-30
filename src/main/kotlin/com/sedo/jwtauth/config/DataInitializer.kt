@@ -36,22 +36,34 @@ class DataInitializer @Autowired constructor(
             User(
                 userName = "owner",
                 password = passwordEncoder.encode("password"),
-                roles = listOf("OWNER")
+                email = "Dupond@gmail.com",
+                firstName = "Dupond",
+                lastName = "MARCEL",
+                isActive = true,
+                roles = listOf("ADMIN")
             ),
             User(
                 userName = "employee",
                 password = passwordEncoder.encode("password"),
+                email = "Olivier@gmail.com",
+                firstName = "Olivier",
+                lastName = "Dupont",
+                isActive = true,
                 roles = listOf("EMPLOYEE")
             ),
             User(
                 userName = "client",
                 password = passwordEncoder.encode("password"),
+                email = "marie@gmail.com",
+                firstName = "Marie",
+                lastName = "CLAIRE",
+                isActive = true,
                 roles = listOf("CLIENT")
             )
         )
         
         defaultUsers.forEach { user ->
-            if (userRepository.findByUsername(user.userName) == null) {
+            if (userRepository.findByUserName(user.userName) == null) {
                 userRepository.save(user)
                 logger.info("Default {} user created", user.roles.joinToString())
             } else {

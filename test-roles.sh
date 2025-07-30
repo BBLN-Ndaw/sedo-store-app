@@ -11,13 +11,13 @@ echo "============================================================"
 # Test des connexions
 echo "1. Test des connexions avec les nouveaux rôles..."
 
-echo "👑 Test connexion OWNER:"
-OWNER_TOKEN=$(curl -s -X POST "$BASE_URL/login" \
+echo "👑 Test connexion ADMIN:"
+ADMIN_TOKEN=$(curl -s -X POST "$BASE_URL/login" \
     -H "Content-Type: application/json" \
-    -d '{"username": "owner", "password": "password"}' | \
+    -d '{"username": "admin", "password": "password"}' | \
     grep -o '"token":"[^"]*"' | cut -d'"' -f4)
 
-if [ -n "$OWNER_TOKEN" ]; then
+if [ -n "$ADMIN_TOKEN" ]; then
     echo "✅ Owner connecté"
 else
     echo "❌ Échec connexion Owner"
@@ -52,10 +52,10 @@ echo ""
 # Test des permissions
 echo "2. Test des permissions par rôle..."
 
-echo "🔒 Test accès users (seul OWNER autorisé):"
+echo "🔒 Test accès users (seul ADMIN autorisé):"
 echo "Owner:" 
 curl -s -X GET "$BASE_URL/users" \
-    -H "Authorization: Bearer $OWNER_TOKEN" \
+    -H "Authorization: Bearer $ADMIN_TOKEN" \
     -w " Status: %{http_code}\n" | head -1
 
 echo "Employee:"
@@ -73,7 +73,7 @@ echo ""
 echo "📂 Test accès categories (tous autorisés en lecture):"
 echo "Owner:"
 curl -s -X GET "$BASE_URL/categories" \
-    -H "Authorization: Bearer $OWNER_TOKEN" \
+    -H "Authorization: Bearer $ADMIN_TOKEN" \
     -w " Status: %{http_code}\n" | head -1
 
 echo "Employee:"
@@ -88,12 +88,12 @@ curl -s -X GET "$BASE_URL/categories" \
 
 echo ""
 
-echo "➕ Test création category (OWNER et EMPLOYEE autorisés):"
+echo "➕ Test création category (ADMIN et EMPLOYEE autorisés):"
 echo "Owner:"
 curl -s -X POST "$BASE_URL/categories" \
-    -H "Authorization: Bearer $OWNER_TOKEN" \
+    -H "Authorization: Bearer $ADMIN_TOKEN" \
     -H "Content-Type: application/json" \
-    -d '{"name": "Test Owner", "description": "Créé par owner"}' \
+    -d '{"name": "Test Owner", "description": "Créé par admin"}' \
     -w " Status: %{http_code}\n" | head -1
 
 echo "Employee:"

@@ -16,38 +16,38 @@ class CategoryController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun getAllCategories(): ResponseEntity<List<Category>> {
         return ResponseEntity.ok(categoryService.getAllCategories())
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun getCategoryById(@PathVariable id: String): ResponseEntity<Category> {
         return ResponseEntity.ok(categoryService.getCategoryById(id))
     }
     
     @GetMapping("/main")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun getMainCategories(): ResponseEntity<List<Category>> {
         return ResponseEntity.ok(categoryService.getMainCategories())
     }
     
     @GetMapping("/{parentId}/subcategories")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun getSubCategories(@PathVariable parentId: String): ResponseEntity<List<Category>> {
         return ResponseEntity.ok(categoryService.getSubCategories(parentId))
     }
     
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun createCategory(@Valid @RequestBody categoryDto: CategoryDto): ResponseEntity<Category> {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(categoryService.createCategory(categoryDto))
     }
     
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun updateCategory(
         @PathVariable id: String,
         @Valid @RequestBody categoryDto: CategoryDto
@@ -56,14 +56,14 @@ class CategoryController(
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun deleteCategory(@PathVariable id: String): ResponseEntity<Void> {
         categoryService.deleteCategory(id)
         return ResponseEntity.noContent().build()
     }
     
     @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun searchCategories(@RequestParam query: String): ResponseEntity<List<Category>> {
         return ResponseEntity.ok(categoryService.searchCategories(query))
     }

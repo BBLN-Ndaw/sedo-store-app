@@ -17,7 +17,7 @@ class CustomUserDetailsService @Autowired constructor(
 
     override fun loadUserByUsername(username: String): UserDetails {
         logger.debug("Loading user details for: {}", username)
-        val user = userRepository.findByUsername(username)
+        val user = userRepository.findByUserName(username)
             ?: run {
                 logger.error("User not found in UserDetailsService: {}", username)
                 throw UsernameNotFoundException("User not found: $username")

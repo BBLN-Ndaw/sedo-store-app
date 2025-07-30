@@ -22,9 +22,9 @@ object Constants {
     }
     
     object Roles {
-        const val OWNER = "OWNER"        // Propriétaire - accès total
-        const val EMPLOYEE = "EMPLOYEE"  // Employé/Gestionnaire - gestion quotidienne
-        const val CLIENT = "CLIENT"      // Client - commandes uniquement
+        const val ADMIN_ROLE = "ADMIN"        // Propriétaire - accès total
+        const val EMPLOYEE_ROLE = "EMPLOYEE"  // Employé/Gestionnaire - gestion quotidienne
+        const val CLIENT_ROLE = "CLIENT"      // Client - commandes uniquement
     }
     
     object TaxRate {

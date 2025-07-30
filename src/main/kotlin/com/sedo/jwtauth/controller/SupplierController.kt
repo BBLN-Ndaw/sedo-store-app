@@ -16,32 +16,32 @@ class SupplierController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getAllSuppliers(): ResponseEntity<List<Supplier>> {
         return ResponseEntity.ok(supplierService.getAllSuppliers())
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getSupplierById(@PathVariable id: String): ResponseEntity<Supplier> {
         return ResponseEntity.ok(supplierService.getSupplierById(id))
     }
     
     @GetMapping("/category/{category}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getSuppliersByCategory(@PathVariable category: String): ResponseEntity<List<Supplier>> {
         return ResponseEntity.ok(supplierService.getSuppliersByCategory(category))
     }
     
     @PostMapping
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun createSupplier(@Valid @RequestBody supplierDto: SupplierDto): ResponseEntity<Supplier> {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(supplierService.createSupplier(supplierDto))
     }
     
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun updateSupplier(
         @PathVariable id: String,
         @Valid @RequestBody supplierDto: SupplierDto
@@ -50,14 +50,14 @@ class SupplierController(
     }
     
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     fun deleteSupplier(@PathVariable id: String): ResponseEntity<Void> {
         supplierService.deleteSupplier(id)
         return ResponseEntity.noContent().build()
     }
     
     @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('OWNER', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun searchSuppliers(@RequestParam query: String): ResponseEntity<List<Supplier>> {
         return ResponseEntity.ok(supplierService.searchSuppliers(query))
     }
