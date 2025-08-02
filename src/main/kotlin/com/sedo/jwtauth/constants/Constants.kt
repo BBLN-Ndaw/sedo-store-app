@@ -30,4 +30,10 @@ object Constants {
     object TaxRate {
         const val DEFAULT_TAX_RATE = 0.20 // 20% TVA en France
     }
+    object Cookie {
+        const val JWT_ACCESS_TOKEN_NAME = "access_token"
+        const val ACCESS_TOKEN_MAX_AGE = 3600
+        const val JWT_REFRESH_TOKEN_NAME = "refresh_token"
+        const val JWT_REFRESH_TOKEN_MAX_AGE = 604800
+    }
 }

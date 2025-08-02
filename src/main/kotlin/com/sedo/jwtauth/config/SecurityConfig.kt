@@ -73,6 +73,7 @@ class SecurityConfig(
             override fun addCorsMappings(registry: CorsRegistry) {
                 registry.addMapping("/**")
                     .allowedOrigins("http://localhost:4200")
+                    .allowCredentials(true)
             }
         }
     }
