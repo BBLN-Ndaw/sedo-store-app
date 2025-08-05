@@ -1,5 +1,6 @@
 package com.sedo.jwtauth.service
 
+import com.sedo.jwtauth.exception.DuplicateUsernameException
 import com.sedo.jwtauth.exception.InvalidPasswordException
 import com.sedo.jwtauth.exception.UserNotFoundException
 import com.sedo.jwtauth.model.dto.CreateUserDto
@@ -46,13 +47,11 @@ class UserService @Autowired constructor(
     fun createUser(createUserDto: CreateUserDto): User {
         logger.info("Creating new user: {} with role: {}", createUserDto.username, createUserDto.roles.joinToString())
         
-        // Vérifier si l'utilisateur existe déjà
         userRepository.findByUserName(createUserDto.username)?.let {
             logger.warn("Attempt to create existing user: {}", createUserDto.username)
-            throw IllegalArgumentException("A user with username '${createUserDto.username}' already exists")
+            throw DuplicateUsernameException(createUserDto.username)
         }
         
-        // Créer l'utilisateur avec le password hashé
         val user = User(
             userName = createUserDto.username,
             password = passwordEncoder.encode(createUserDto.password), // ✅ Hash du password
@@ -71,7 +70,7 @@ class UserService @Autowired constructor(
     fun updateUser(idOldUser: String, userName: String?, firstName: String?, lastName: String?, email: String?, isActive: Boolean?, roles: List<String>?): User {
 
         val user = getUserById(idOldUser)
-        val updatedUser = user!!.copy(
+        val updatedUser = user.copy(
             userName = userName ?: user.userName,
             firstName = firstName ?: user.firstName,
             lastName = lastName ?: user.lastName,
@@ -85,6 +84,7 @@ class UserService @Autowired constructor(
 
     fun updatePassword(id: String, currentPassword: String, newPassword: String) {
         logger.info("Updating password for user ID: {}", id)
+        
         val user = getUserById(id)
         
         if (!passwordEncoder.matches(currentPassword, user.password)) {

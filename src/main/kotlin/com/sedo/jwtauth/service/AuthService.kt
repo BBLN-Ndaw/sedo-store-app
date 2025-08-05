@@ -5,6 +5,7 @@ import com.sedo.jwtauth.constants.Constants.Cookie.JWT_ACCESS_TOKEN_NAME
 import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_MAX_AGE
 import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_NAME
 import com.sedo.jwtauth.exception.InvalidCredentialsException
+import com.sedo.jwtauth.exception.JwtException
 import com.sedo.jwtauth.exception.UserNotFoundException
 import com.sedo.jwtauth.model.dto.LoginResponseDto
 import com.sedo.jwtauth.model.dto.LoginUserDto
@@ -40,7 +41,10 @@ class AuthService @Autowired constructor(
         return issueTokens(retrievedUser, response)
     }
 
-    fun createRefreshToken(refreshToken: String, response: HttpServletResponse): LoginResponseDto {
+    fun createRefreshToken(refreshToken: String?, response: HttpServletResponse): LoginResponseDto {
+        if(refreshToken.isNullOrEmpty()) {
+            return LoginResponseDto(success = false, message = "REFRESH_TOKEN_MISSING")
+        }
         val userName = jwtUtil.validateToken(refreshToken)
         val retrievedUser = retrieveUserOrThrow(userName)
         logger.info("Refresh token valid. Issuing new tokens for user: {}", retrievedUser.userName)
@@ -75,5 +79,23 @@ class AuthService @Autowired constructor(
             setAttribute("SameSite", "Strict")
         }
     }
+
+    fun validateAccessToken(token: String): LoginResponseDto {
+        return try {
+            jwtUtil.validateToken(token)
+            LoginResponseDto(success = true, message = "SUCCESS")
+        } catch (ex: JwtException) {
+            LoginResponseDto(success = false, message = "UNAUTHORIZED")
+        }
+    }
+
+    fun checkLoginStatus(accessToken: String?): LoginResponseDto {
+        return if (accessToken != null) {
+            validateAccessToken(accessToken)
+        } else {
+            LoginResponseDto(success = false, message = "NO_TOKEN: USER_NOT_LOGGED_IN")
+        }
+    }
+
 
 }

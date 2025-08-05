@@ -1,6 +1,6 @@
 package com.sedo.jwtauth.service
 
-import com.sedo.jwtauth.exception.ResourceNotFoundException
+import com.sedo.jwtauth.exception.ProductNotFoundException
 import com.sedo.jwtauth.model.dto.ProductDto
 import com.sedo.jwtauth.model.entity.Product
 import com.sedo.jwtauth.repository.ProductRepository
@@ -26,7 +26,7 @@ class ProductService(
     fun getProductById(id: String): Product {
         logger.debug("Retrieving product with ID: {}", id)
         return productRepository.findById(id).orElse(null)
-            ?: throw ResourceNotFoundException("Product not found with ID: $id")
+            ?: throw ProductNotFoundException(id)
     }
     
     fun getProductsByCategory(categoryId: String): List<Product> {

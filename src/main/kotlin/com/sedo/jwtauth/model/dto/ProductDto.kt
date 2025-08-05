@@ -1,9 +1,11 @@
 package com.sedo.jwtauth.model.dto
 
+import com.sedo.jwtauth.validation.ValidPriceMargin
 import jakarta.validation.constraints.*
 import java.math.BigDecimal
 import java.time.LocalDate
 
+@ValidPriceMargin(message = "Selling price must be greater than purchase price")
 data class ProductDto(
     val id: String? = null,
     

@@ -8,7 +8,9 @@ object Constants {
     object Endpoints {
         const val API = "/api"
         const val LOGIN = "/login"
-        const val HELLO = "/hello"
+        const val LOGOUT = "/logout"
+        const val CHECK_LOGIN = "/check_login"
+        const val REFRESH_TOKEN = "/refresh-token"
         const val ADMIN = "/admin"
         const val EMPLOYEE = "/employee"
         const val USER = "$API/users"
@@ -25,10 +27,6 @@ object Constants {
         const val ADMIN_ROLE = "ADMIN"        // Propriétaire - accès total
         const val EMPLOYEE_ROLE = "EMPLOYEE"  // Employé/Gestionnaire - gestion quotidienne
         const val CLIENT_ROLE = "CLIENT"      // Client - commandes uniquement
-    }
-    
-    object TaxRate {
-        const val DEFAULT_TAX_RATE = 0.20 // 20% TVA en France
     }
     object Cookie {
         const val JWT_ACCESS_TOKEN_NAME = "access_token"

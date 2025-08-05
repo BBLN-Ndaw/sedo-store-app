@@ -1,19 +1,18 @@
 package com.sedo.jwtauth.controller
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.API
+import com.sedo.jwtauth.constants.Constants.Endpoints.CHECK_LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
+import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
 import com.sedo.jwtauth.model.dto.LoginResponseDto
 import com.sedo.jwtauth.model.dto.LoginUserDto
 import com.sedo.jwtauth.service.AuthService
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CookieValue
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping(API)
@@ -27,11 +26,27 @@ class AuthController @Autowired constructor(
             .let {ResponseEntity.ok(it) }
     }
 
-    @PostMapping("/refresh-token")
-    fun refreshToken(@CookieValue refresh_token: String?, response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
-        if(refresh_token != null )
-            return authService.createRefreshToken( refresh_token, response)
-                .let { ResponseEntity.ok(it) }
-        return ResponseEntity.ok(LoginResponseDto(false, "REJECTED"))
+    @PostMapping(REFRESH_TOKEN)
+    fun refreshToken(@CookieValue(value = "refresh_token", required = false) refreshToken: String?, response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
+        return authService.createRefreshToken(refreshToken, response).let {
+            if( it.success) {
+                ResponseEntity.ok(it)
+            } else {
+                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(it)
+            }
+        }
+
+    }
+
+    @GetMapping(CHECK_LOGIN)
+    fun checkLoginStatus(@CookieValue(value = "access_token", required = false) accessToken: String?): ResponseEntity<LoginResponseDto> {
+        return authService.checkLoginStatus(accessToken).let {
+            if (it.success) {
+                ResponseEntity.ok(it)
+            } else {
+                ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(it)
+            }
+        }
     }
 }

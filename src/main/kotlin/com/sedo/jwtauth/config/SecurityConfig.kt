@@ -2,6 +2,7 @@ package com.sedo.jwtauth.config
 
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.filter.JwtAuthFilter
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -34,6 +35,8 @@ class SecurityConfig(
                 auth
                     // Public endpoints
                     .requestMatchers("/api/login").permitAll()
+                    .requestMatchers("/api/check_login").permitAll()
+                    .requestMatchers("/api/check-login").permitAll()
 
                     // Admin only endpoints (contrôle total)
                     .requestMatchers("/api/admin").hasAuthority(ADMIN_ROLE)
@@ -59,6 +62,35 @@ class SecurityConfig(
 //                    .requestMatchers("/api/dashboard/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
 //
                     .anyRequest().authenticated()
+            }
+            .exceptionHandling { exceptions ->
+                exceptions
+                    .authenticationEntryPoint { _, response, authException ->
+                        response.status = HttpServletResponse.SC_UNAUTHORIZED
+                        response.contentType = "application/json"
+                        response.characterEncoding = "UTF-8"
+                        response.writer.write("""
+                            {
+                                "error": "Authentication Required",
+                                "message": "Full authentication is required to access this resource",
+                                "status": 401,
+                                "timestamp": "${java.time.LocalDateTime.now()}"
+                            }
+                        """.trimIndent())
+                    }
+                    .accessDeniedHandler { _, response, accessDeniedException ->
+                        response.status = HttpServletResponse.SC_FORBIDDEN
+                        response.contentType = "application/json"
+                        response.characterEncoding = "UTF-8"
+                        response.writer.write("""
+                            {
+                                "error": "Access Denied",
+                                "message": "You don't have permission to access this resource",
+                                "status": 403,
+                                "timestamp": "${java.time.LocalDateTime.now()}"
+                            }
+                        """.trimIndent())
+                    }
             }
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
             .build()
