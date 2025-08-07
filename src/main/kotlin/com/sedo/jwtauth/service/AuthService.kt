@@ -1,11 +1,8 @@
 package com.sedo.jwtauth.service
 
-import com.sedo.jwtauth.constants.Constants.Cookie.ACCESS_TOKEN_MAX_AGE
-import com.sedo.jwtauth.constants.Constants.Cookie.JWT_ACCESS_TOKEN_NAME
 import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_MAX_AGE
 import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_NAME
 import com.sedo.jwtauth.exception.InvalidCredentialsException
-import com.sedo.jwtauth.exception.JwtException
 import com.sedo.jwtauth.exception.UserNotFoundException
 import com.sedo.jwtauth.model.dto.LoginResponseDto
 import com.sedo.jwtauth.model.dto.LoginUserDto
@@ -41,9 +38,9 @@ class AuthService @Autowired constructor(
         return issueTokens(retrievedUser, response)
     }
 
-    fun createRefreshToken(refreshToken: String?, response: HttpServletResponse): LoginResponseDto {
+    fun refreshToken(refreshToken: String?, response: HttpServletResponse): LoginResponseDto {
         if(refreshToken.isNullOrEmpty()) {
-            return LoginResponseDto(success = false, message = "REFRESH_TOKEN_MISSING")
+            return LoginResponseDto(success = false)
         }
         val userName = jwtUtil.validateToken(refreshToken)
         val retrievedUser = retrieveUserOrThrow(userName)
@@ -63,39 +60,18 @@ class AuthService @Autowired constructor(
         val accessToken = jwtUtil.generateAccessToken(user.userName, user.roles)
         val refreshToken = jwtUtil.generateRefreshToken(user.userName, user.roles)
 
-        response.addCookie(buildCookie(JWT_ACCESS_TOKEN_NAME, accessToken, ACCESS_TOKEN_MAX_AGE))
         response.addCookie(buildCookie(JWT_REFRESH_TOKEN_NAME, refreshToken, JWT_REFRESH_TOKEN_MAX_AGE))
 
-        return LoginResponseDto(success = true, message = "SUCCESS")
+        return LoginResponseDto(success = true, token = accessToken)
     }
 
     private fun buildCookie(name: String, value: String, maxAge: Int): Cookie {
         return Cookie(name, value).apply {
             isHttpOnly = true
-            // secure = true // Uncomment when HTTPS is supported
+            secure = false // Explicitement désactivé pour le développement local
             path = "/"
             this.maxAge = maxAge
-            domain = "localhost"
-            setAttribute("SameSite", "Strict")
+            setAttribute("SameSite", "Lax")
         }
     }
-
-    fun validateAccessToken(token: String): LoginResponseDto {
-        return try {
-            jwtUtil.validateToken(token)
-            LoginResponseDto(success = true, message = "SUCCESS")
-        } catch (ex: JwtException) {
-            LoginResponseDto(success = false, message = "UNAUTHORIZED")
-        }
-    }
-
-    fun checkLoginStatus(accessToken: String?): LoginResponseDto {
-        return if (accessToken != null) {
-            validateAccessToken(accessToken)
-        } else {
-            LoginResponseDto(success = false, message = "NO_TOKEN: USER_NOT_LOGGED_IN")
-        }
-    }
-
-
 }

@@ -1,5 +1,9 @@
 package com.sedo.jwtauth.config
 
+import com.sedo.jwtauth.constants.Constants.Endpoints.API
+import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
+import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
+import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.filter.JwtAuthFilter
 import jakarta.servlet.http.HttpServletResponse
@@ -26,17 +30,32 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 class SecurityConfig(
     private val jwtAuthFilter: JwtAuthFilter
 ) {
+    
+    @Bean
+    fun corsConfigurer(): WebMvcConfigurer {
+        return object : WebMvcConfigurer {
+            override fun addCorsMappings(registry: CorsRegistry) {
+                registry.addMapping("/**")
+                    .allowedOrigins("http://localhost:4200")
+                    .allowedMethods("*")
+                    .allowedHeaders("*")
+                    .allowCredentials(true)
+                    .maxAge(3600)
+            }
+        }
+    }
 
     @Bean
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         return http
             .csrf { it.disable() }
+            .cors {}  // Active la configuration CORS
             .authorizeHttpRequests { auth ->
                 auth
-                    // Public endpoints
-                    .requestMatchers("/api/login").permitAll()
-                    .requestMatchers("/api/logout").permitAll()
-                    .requestMatchers("/api/refresh_token").permitAll()
+                    // Public endpoints - only authentication related
+                    .requestMatchers("$API$LOGIN").permitAll()
+                    .requestMatchers("$API$LOGOUT").permitAll()
+                    .requestMatchers("$API$REFRESH_TOKEN").permitAll()
 
                     // Admin only endpoints (contrôle total)
                     .requestMatchers("/api/admin").hasAuthority(ADMIN_ROLE)
@@ -98,17 +117,6 @@ class SecurityConfig(
 
     @Bean
     fun passwordEncoder(): BCryptPasswordEncoder = BCryptPasswordEncoder()
-
-    @Bean
-    fun corsConfigurer(): WebMvcConfigurer {
-        return object : WebMvcConfigurer {
-            override fun addCorsMappings(registry: CorsRegistry) {
-                registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:4200")
-                    .allowCredentials(true)
-            }
-        }
-    }
 
 
 }

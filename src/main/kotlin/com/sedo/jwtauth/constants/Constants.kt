@@ -7,10 +7,10 @@ object Constants {
     
     object Endpoints {
         const val API = "/api"
-        const val LOGIN = "/login"
-        const val LOGOUT = "/logout"
-        const val CHECK_LOGIN = "/check_login"
-        const val REFRESH_TOKEN = "/refresh_token"
+        const val LOGIN = "/auth/login"
+        const val LOGOUT = "/auth/logout"
+        const val CHECK_LOGIN = "/auth/check_login"
+        const val REFRESH_TOKEN = "/auth/refresh_token"
         const val ADMIN = "/admin"
         const val EMPLOYEE = "/employee"
         const val USER = "$API/users"
@@ -29,8 +29,6 @@ object Constants {
         const val CLIENT_ROLE = "CLIENT"      // Client - commandes uniquement
     }
     object Cookie {
-        const val JWT_ACCESS_TOKEN_NAME = "access_token"
-        const val ACCESS_TOKEN_MAX_AGE = 1 * 60 * 60 // 1 minutes in second
         const val JWT_REFRESH_TOKEN_NAME = "refresh_token"
         const val JWT_REFRESH_TOKEN_MAX_AGE = 24 * 60 * 60 // 24 hour in second
     }
