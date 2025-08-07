@@ -10,7 +10,7 @@ object Constants {
         const val LOGIN = "/login"
         const val LOGOUT = "/logout"
         const val CHECK_LOGIN = "/check_login"
-        const val REFRESH_TOKEN = "/refresh-token"
+        const val REFRESH_TOKEN = "/refresh_token"
         const val ADMIN = "/admin"
         const val EMPLOYEE = "/employee"
         const val USER = "$API/users"
@@ -30,8 +30,8 @@ object Constants {
     }
     object Cookie {
         const val JWT_ACCESS_TOKEN_NAME = "access_token"
-        const val ACCESS_TOKEN_MAX_AGE = 3600
+        const val ACCESS_TOKEN_MAX_AGE = 1 * 60 * 60 // 1 minutes in second
         const val JWT_REFRESH_TOKEN_NAME = "refresh_token"
-        const val JWT_REFRESH_TOKEN_MAX_AGE = 604800
+        const val JWT_REFRESH_TOKEN_MAX_AGE = 24 * 60 * 60 // 24 hour in second
     }
 }

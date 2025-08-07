@@ -6,7 +6,7 @@ import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_NAME
 import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
-import com.sedo.jwtauth.constants.Constants.Endpoints.CHECK_LOGIN
+import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
 import com.sedo.jwtauth.model.dto.ErrorResponseDto
 import com.sedo.jwtauth.util.JwtUtil
 import jakarta.servlet.FilterChain
@@ -50,9 +50,9 @@ class JwtAuthFilter(
         if (token == null) {
             logger.debug("No JWT token found in request")
             sendErrorResponse(
-                response, 
-                HttpStatus.UNAUTHORIZED, 
-                "Authentication Required", 
+                response,
+                HttpStatus.UNAUTHORIZED,
+                "Authentication Required",
                 "Authentication token is required",
                 request.requestURI
             )
@@ -65,9 +65,9 @@ class JwtAuthFilter(
         } catch (ex: Exception) {
             logger.warn("JWT authentication failed: ${ex.message}")
             sendErrorResponse(
-                response, 
-                HttpStatus.UNAUTHORIZED, 
-                "Authentication Failed", 
+                response,
+                HttpStatus.UNAUTHORIZED,
+                "Authentication Failed",
                 "Invalid or expired token",
                 request.requestURI
             )
@@ -78,7 +78,7 @@ class JwtAuthFilter(
         val publicEndpoints = listOf(
             API + LOGIN,
             API + LOGOUT,
-            API + CHECK_LOGIN
+            API + REFRESH_TOKEN,
         )
         return publicEndpoints.contains(servletPath)
     }
@@ -96,12 +96,6 @@ class JwtAuthFilter(
             logger.debug("JWT access token found in cookie")
             return it.value
         }
-
-        cookies.firstOrNull { it.name == JWT_REFRESH_TOKEN_NAME }?.let {
-            logger.debug("JWT refresh token found in cookie")
-            return it.value
-        }
-
         return null
     }
 

@@ -35,8 +35,8 @@ class SecurityConfig(
                 auth
                     // Public endpoints
                     .requestMatchers("/api/login").permitAll()
-                    .requestMatchers("/api/check_login").permitAll()
-                    .requestMatchers("/api/check-login").permitAll()
+                    .requestMatchers("/api/logout").permitAll()
+                    .requestMatchers("/api/refresh_token").permitAll()
 
                     // Admin only endpoints (contrôle total)
                     .requestMatchers("/api/admin").hasAuthority(ADMIN_ROLE)
