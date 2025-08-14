@@ -52,13 +52,13 @@ class DataInitializer @Autowired constructor(
                 roles = listOf("EMPLOYEE")
             ),
             User(
-                userName = "client",
+                userName = "customer",
                 password = passwordEncoder.encode("password"),
                 email = "marie@gmail.com",
                 firstName = "Marie",
                 lastName = "CLAIRE",
                 isActive = true,
-                roles = listOf("CLIENT")
+                roles = listOf("CUSTOMER")
             )
         )
         

@@ -11,7 +11,7 @@ db.users.insertOne({
     firstName: "Test",
     lastName: "User",
     isActive: true,
-    roles: ["CLIENT"],
+    roles: ["CUSTOMER"],
     createdAt: new Date()
 });
 

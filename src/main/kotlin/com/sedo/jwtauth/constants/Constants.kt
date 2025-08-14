@@ -26,7 +26,7 @@ object Constants {
     object Roles {
         const val ADMIN_ROLE = "ADMIN"
         const val EMPLOYEE_ROLE = "EMPLOYEE"
-        const val CLIENT_ROLE = "CLIENT"
+        const val CUSTOMER = "CUSTOMER"
     }
     object Cookie {
         const val JWT_REFRESH_TOKEN_NAME = "refresh_token"

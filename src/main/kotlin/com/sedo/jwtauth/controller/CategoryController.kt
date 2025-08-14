@@ -16,25 +16,25 @@ class CategoryController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
     fun getAllCategories(): ResponseEntity<List<Category>> {
         return ResponseEntity.ok(categoryService.getAllCategories())
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
     fun getCategoryById(@PathVariable id: String): ResponseEntity<Category> {
         return ResponseEntity.ok(categoryService.getCategoryById(id))
     }
     
     @GetMapping("/main")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
     fun getMainCategories(): ResponseEntity<List<Category>> {
         return ResponseEntity.ok(categoryService.getMainCategories())
     }
     
     @GetMapping("/{parentId}/subcategories")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
     fun getSubCategories(@PathVariable parentId: String): ResponseEntity<List<Category>> {
         return ResponseEntity.ok(categoryService.getSubCategories(parentId))
     }
@@ -63,7 +63,7 @@ class CategoryController(
     }
     
     @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
     fun searchCategories(@RequestParam query: String): ResponseEntity<List<Category>> {
         return ResponseEntity.ok(categoryService.searchCategories(query))
     }
