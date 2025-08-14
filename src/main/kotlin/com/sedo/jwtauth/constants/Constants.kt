@@ -24,9 +24,9 @@ object Constants {
     }
     
     object Roles {
-        const val ADMIN_ROLE = "ADMIN"        // Propriétaire - accès total
-        const val EMPLOYEE_ROLE = "EMPLOYEE"  // Employé/Gestionnaire - gestion quotidienne
-        const val CLIENT_ROLE = "CLIENT"      // Client - commandes uniquement
+        const val ADMIN_ROLE = "ADMIN"
+        const val EMPLOYEE_ROLE = "EMPLOYEE"
+        const val CLIENT_ROLE = "CLIENT"
     }
     object Cookie {
         const val JWT_REFRESH_TOKEN_NAME = "refresh_token"

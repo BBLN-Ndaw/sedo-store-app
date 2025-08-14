@@ -2,6 +2,7 @@ package com.sedo.jwtauth.controller
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
+import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
 import com.sedo.jwtauth.model.dto.LoginResponseDto
 import com.sedo.jwtauth.model.dto.LoginUserDto
@@ -38,35 +39,9 @@ class AuthController @Autowired constructor(
     }
 
 
-//    @PostMapping(LOGOUT)
-//    fun logout(response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
-//        // Clear access
-//        val accessCookie = Cookie(JWT_ACCESS_TOKEN_NAME, null).apply {
-//            value = ""  // Explicitement vider la valeur
-//            maxAge = 0  // Expire immédiatement
-//            path = "/"  // Même path que lors de la création
-//            isHttpOnly = true
-//            secure = false  // Désactiver secure pour le développement local
-//            setAttribute("SameSite", "Lax")
-//        }
-//
-//        // Clear refresh token
-//        val refreshCookie = Cookie(JWT_REFRESH_TOKEN_NAME, null).apply {
-//            value = ""  // Explicitement vider la valeur
-//            maxAge = 0  // Expire immédiatement
-//            path = "/"  // Même path que lors de la création
-//            isHttpOnly = true
-//            secure = false  // Désactiver secure pour le développement local
-//            setAttribute("SameSite", "Lax")
-//        }
-//
-//        // Ajouter les cookies expirés à la réponse
-//        response.addCookie(accessCookie)
-//        response.addCookie(refreshCookie)
-//
-//        // S'assurer que la réponse a les bons headers CORS
-//        response.setHeader("Access-Control-Allow-Credentials", "true")
-//
-//        return ResponseEntity.ok(LoginResponseDto(success = true, message = "LOGGED_OUT"))
-//    }
+    @PostMapping(LOGOUT)
+    fun logout(@CookieValue(value = "refresh_token") refreshToken: String, response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
+            return authService.logout(refreshToken, response)
+                .let { ResponseEntity.ok(it) }
+    }
 }

@@ -19,6 +19,7 @@ import com.sedo.jwtauth.exception.OrderAlreadyProcessedException
 import com.sedo.jwtauth.exception.OrderNotFoundException
 import com.sedo.jwtauth.exception.ProductNotFoundException
 import com.sedo.jwtauth.exception.ProductOutOfStockException
+import com.sedo.jwtauth.exception.RefreshTokenFailedException
 import com.sedo.jwtauth.exception.ResourceNotFoundException
 import com.sedo.jwtauth.exception.SaleNotFoundException
 import com.sedo.jwtauth.exception.SupplierNotFoundException
@@ -138,6 +139,21 @@ class ApiExceptionHandler {
         val errorResponse = ErrorResponseDto(
             error = "Authentication Failed",
             message = "Authentication failed",
+            status = HttpStatus.UNAUTHORIZED.value(),
+            path = request.requestURI
+        )
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse)
+    }
+
+    @ExceptionHandler(RefreshTokenFailedException::class)
+    fun handleRefreshTokenFailedException(
+        ex: RefreshTokenFailedException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponseDto> {
+        logger.warn("Refresh Token Failed : ${ex.message}")
+        val errorResponse = ErrorResponseDto(
+            error = "Refresh Token Failed",
+            message = "Refresh Token Failed due to revoked token",
             status = HttpStatus.UNAUTHORIZED.value(),
             path = request.requestURI
         )

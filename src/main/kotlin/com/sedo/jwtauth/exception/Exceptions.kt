@@ -15,6 +15,7 @@ class InvalidPasswordException(message: String = "Invalid password") : RuntimeEx
 class NoTokenException(message: String = "No token provided") : RuntimeException(message)
 
 class AuthenticationFailedException(message: String = "Authentication failed") : RuntimeException(message)
+class RefreshTokenFailedException(message: String = "Refresh token failed") : RuntimeException(message)
 
 // ================================
 // Business Logic Exceptions

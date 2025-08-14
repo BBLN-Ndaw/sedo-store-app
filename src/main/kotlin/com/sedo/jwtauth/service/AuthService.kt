@@ -2,7 +2,9 @@ package com.sedo.jwtauth.service
 
 import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_MAX_AGE
 import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_NAME
+import com.sedo.jwtauth.exception.AuthenticationFailedException
 import com.sedo.jwtauth.exception.InvalidCredentialsException
+import com.sedo.jwtauth.exception.RefreshTokenFailedException
 import com.sedo.jwtauth.exception.UserNotFoundException
 import com.sedo.jwtauth.model.dto.LoginResponseDto
 import com.sedo.jwtauth.model.dto.LoginUserDto
@@ -12,6 +14,7 @@ import com.sedo.jwtauth.util.JwtUtil
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
+import org.slf4j.LoggerFactory.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
@@ -19,11 +22,12 @@ import org.springframework.stereotype.Service
 @Service
 class AuthService @Autowired constructor(
     private val userRepository: UserRepository,
+    private val refreshTokenService: RefreshTokenService,
     private val jwtUtil: JwtUtil,
     private val passwordEncoder: BCryptPasswordEncoder
 ) {
     
-    private val logger = LoggerFactory.getLogger(AuthService::class.java)
+    private val logger = getLogger(AuthService::class.java)
 
     fun authenticate(user: LoginUserDto, response: HttpServletResponse): LoginResponseDto {
         logger.info("Authentication attempt for user: {}", user.username)
@@ -42,10 +46,25 @@ class AuthService @Autowired constructor(
         if(refreshToken.isNullOrEmpty()) {
             return LoginResponseDto(success = false)
         }
-        val userName = jwtUtil.validateToken(refreshToken)
-        val retrievedUser = retrieveUserOrThrow(userName)
-        logger.info("Refresh token valid. Issuing new tokens for user: {}", retrievedUser.userName)
-        return issueTokens(retrievedUser, response)
+        return if(refreshTokenService.isValidateToken(refreshToken)) {
+            val userName = jwtUtil.validateToken(refreshToken)
+            refreshTokenService.deleteAllByUserName(userName)
+            val retrievedUser = retrieveUserOrThrow(userName)
+            logger.info("Refresh token valid. Issuing new tokens for user: {}", retrievedUser.userName)
+             issueTokens(retrievedUser, response)
+        }
+        else{
+            logger.warn("revoked refresh token provided: {}", refreshToken)
+            throw RefreshTokenFailedException("revoked refresh token provided")
+        }
+    }
+
+    fun logout(refreshToken: String, response: HttpServletResponse): LoginResponseDto {
+            logger.info("Logging out user by invalidating refresh token and clearing cookies")
+            refreshTokenService.deleteByToken(refreshToken)
+            val refreshCookie = buildCookie(JWT_REFRESH_TOKEN_NAME, "", 0)
+            response.addCookie(refreshCookie)
+            return LoginResponseDto(success = true)
     }
 
     private fun retrieveUserOrThrow(username: String): User {
@@ -59,6 +78,7 @@ class AuthService @Autowired constructor(
     private fun issueTokens(user: User, response: HttpServletResponse): LoginResponseDto {
         val accessToken = jwtUtil.generateAccessToken(user.userName, user.roles)
         val refreshToken = jwtUtil.generateRefreshToken(user.userName, user.roles)
+        refreshTokenService.saveToken(token = refreshToken, userName = user.userName)
 
         response.addCookie(buildCookie(JWT_REFRESH_TOKEN_NAME, refreshToken, JWT_REFRESH_TOKEN_MAX_AGE))
 
