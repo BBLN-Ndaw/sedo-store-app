@@ -1,29 +1,6 @@
 package com.sedo.jwtauth.error
 
-import com.sedo.jwtauth.exception.AuthenticationFailedException
-import com.sedo.jwtauth.exception.CategoryNotFoundException
-import com.sedo.jwtauth.exception.DuplicateEmailException
-import com.sedo.jwtauth.exception.DuplicateUsernameException
-import com.sedo.jwtauth.exception.InsufficientStockException
-import com.sedo.jwtauth.exception.InvalidCategoryOperationException
-import com.sedo.jwtauth.exception.InvalidCredentialsException
-import com.sedo.jwtauth.exception.InvalidOperationException
-import com.sedo.jwtauth.exception.InvalidOrderStatusException
-import com.sedo.jwtauth.exception.InvalidPasswordException
-import com.sedo.jwtauth.exception.InvalidPriceException
-import com.sedo.jwtauth.exception.InvalidQuantityException
-import com.sedo.jwtauth.exception.InvalidSupplierOperationException
-import com.sedo.jwtauth.exception.JwtException
-import com.sedo.jwtauth.exception.NoTokenException
-import com.sedo.jwtauth.exception.OrderAlreadyProcessedException
-import com.sedo.jwtauth.exception.OrderNotFoundException
-import com.sedo.jwtauth.exception.ProductNotFoundException
-import com.sedo.jwtauth.exception.ProductOutOfStockException
-import com.sedo.jwtauth.exception.RefreshTokenFailedException
-import com.sedo.jwtauth.exception.ResourceNotFoundException
-import com.sedo.jwtauth.exception.SaleNotFoundException
-import com.sedo.jwtauth.exception.SupplierNotFoundException
-import com.sedo.jwtauth.exception.UserNotFoundException
+import com.sedo.jwtauth.exception.*
 import com.sedo.jwtauth.model.dto.ErrorResponseDto
 import com.sedo.jwtauth.model.dto.FieldErrorDto
 import com.sedo.jwtauth.model.dto.ValidationErrorResponseDto
@@ -37,6 +14,7 @@ import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.validation.FieldError
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
@@ -109,21 +87,6 @@ class ApiExceptionHandler {
         val errorResponse = ErrorResponseDto(
             error = "Authentication Error",
             message = "Invalid or expired token",
-            status = HttpStatus.UNAUTHORIZED.value(),
-            path = request.requestURI
-        )
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse)
-    }
-
-    @ExceptionHandler(NoTokenException::class)
-    fun handleNoTokenException(
-        ex: NoTokenException,
-        request: HttpServletRequest
-    ): ResponseEntity<ErrorResponseDto> {
-        logger.warn("No token provided: ${ex.message}")
-        val errorResponse = ErrorResponseDto(
-            error = "Authentication Required",
-            message = "Authentication token is required",
             status = HttpStatus.UNAUTHORIZED.value(),
             path = request.requestURI
         )
@@ -411,6 +374,22 @@ class ApiExceptionHandler {
             status = HttpStatus.BAD_REQUEST.value(),
             path = request.requestURI,
             fieldErrors = fieldErrors
+        )
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
+    }
+
+
+    @ExceptionHandler(MissingRequestCookieException::class)
+    fun handleMissingRequestCookieException(
+        ex: MissingRequestCookieException,
+        request: HttpServletRequest
+    ): ResponseEntity<ErrorResponseDto> {
+        logger.warn("Missing refresh token: ${ex.message}")
+        val errorResponse = ErrorResponseDto(
+            error = "Bad Request: Missing refresh token",
+            message = "Required cookie is missing: ${ex.cookieName}",
+            status = HttpStatus.BAD_REQUEST.value(),
+            path = request.requestURI
         )
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse)
     }

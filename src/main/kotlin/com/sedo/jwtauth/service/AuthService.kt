@@ -2,7 +2,6 @@ package com.sedo.jwtauth.service
 
 import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_MAX_AGE
 import com.sedo.jwtauth.constants.Constants.Cookie.JWT_REFRESH_TOKEN_NAME
-import com.sedo.jwtauth.exception.AuthenticationFailedException
 import com.sedo.jwtauth.exception.InvalidCredentialsException
 import com.sedo.jwtauth.exception.RefreshTokenFailedException
 import com.sedo.jwtauth.exception.UserNotFoundException
@@ -13,7 +12,6 @@ import com.sedo.jwtauth.repository.UserRepository
 import com.sedo.jwtauth.util.JwtUtil
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
-import org.slf4j.LoggerFactory
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -42,10 +40,7 @@ class AuthService @Autowired constructor(
         return issueTokens(retrievedUser, response)
     }
 
-    fun refreshToken(refreshToken: String?, response: HttpServletResponse): LoginResponseDto {
-        if(refreshToken.isNullOrEmpty()) {
-            return LoginResponseDto(success = false)
-        }
+    fun refreshToken(refreshToken: String, response: HttpServletResponse): LoginResponseDto {
         return if(refreshTokenService.isValidateToken(refreshToken)) {
             val userName = jwtUtil.validateToken(refreshToken)
             refreshTokenService.deleteAllByUserName(userName)

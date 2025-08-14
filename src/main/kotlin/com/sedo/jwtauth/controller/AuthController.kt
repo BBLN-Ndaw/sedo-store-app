@@ -10,7 +10,6 @@ import com.sedo.jwtauth.service.AuthService
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -27,15 +26,9 @@ class AuthController @Autowired constructor(
     }
 
     @PostMapping(REFRESH_TOKEN)
-    fun refreshToken(@CookieValue(value = "refresh_token", required = false) refreshToken: String?, response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
-        return authService.refreshToken(refreshToken, response).let {
-            if( it.success) {
-                ResponseEntity.ok(it)
-            } else {
-                ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(it)
-            }
-        }
-
+    fun refreshToken(@CookieValue(value = "refresh_token") refreshToken: String, response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
+        return authService.refreshToken(refreshToken, response)
+            .let {ResponseEntity.ok(it) }
     }
 
 
