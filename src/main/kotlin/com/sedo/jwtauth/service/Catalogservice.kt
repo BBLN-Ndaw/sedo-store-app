@@ -28,7 +28,7 @@ class Catalogservice(
                 stockQuantity = product.stockQuantity,
                 isOnPromotion = product.isOnPromotion,
                 promotionPrice = product.promotionPrice,
-                promotionEndDate = ofInstant(product.promotionEndDate, systemDefault()),
+                promotionEndDate = product.promotionEndDate?.let { ofInstant(product.promotionEndDate, systemDefault()) },
                 unit = product.unit,
                 expirationDate = product.expirationDate,
                 imageUrls = product.images,
