@@ -32,4 +32,7 @@ object Constants {
         const val JWT_REFRESH_TOKEN_NAME = "refresh_token"
         const val JWT_REFRESH_TOKEN_MAX_AGE = 24 * 60 * 60 // 24 hour in second
     }
+    object Product {
+        const val MARGE= 0.3 // 30% default margin on purchase price
+    }
 }

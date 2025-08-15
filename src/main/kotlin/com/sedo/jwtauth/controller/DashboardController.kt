@@ -31,9 +31,9 @@ class DashboardController(
         val readyForPickupOrders = orderService.getReadyForPickupOrders()
         
         // Produits
-        val lowStockProducts = productService.getLowStockProducts(10)
+        val lowStockProducts = productService.getLowStockProducts()
         val expiredProducts = productService.getExpiredProducts()
-        val expiringProducts = productService.getExpiringProducts(7)
+        val expiringProducts = productService.getProductsExpiringIn(7)
         
         // Top produits
         val topProducts = saleService.getTopSellingProducts(5)
@@ -59,7 +59,7 @@ class DashboardController(
                             "id" to it.id,
                             "name" to it.name,
                             "stock" to it.stockQuantity,
-                            "minLevel" to it.minimumStock
+                            "minLevel" to it.minStock
                         )
                     }
                 ),
@@ -161,9 +161,9 @@ class DashboardController(
     @GetMapping("/inventory-alerts")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getInventoryAlerts(): ResponseEntity<Map<String, Any>> {
-        val lowStockProducts = productService.getLowStockProducts(10)
+        val lowStockProducts = productService.getLowStockProducts()
         val expiredProducts = productService.getExpiredProducts()
-        val expiringProducts = productService.getExpiringProducts(7)
+        val expiringProducts = productService.getProductsExpiringIn(7)
         
         return ResponseEntity.ok(mapOf(
             "lowStock" to lowStockProducts,

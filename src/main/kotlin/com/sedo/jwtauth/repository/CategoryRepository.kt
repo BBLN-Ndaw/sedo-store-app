@@ -5,7 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository
 
 interface CategoryRepository : MongoRepository<Category, String> {
     fun findByIsActiveTrue(): List<Category>
-    fun findByParentCategoryIdIsNull(): List<Category> // Catégories principales
-    fun findByParentCategoryId(parentId: String): List<Category> // Sous-catégories
+    fun findByIsActiveFalse(): List<Category>
     fun findByNameContainingIgnoreCase(name: String): List<Category>
+    fun findAllByIdIn(ids: Collection<String>): List<Category>
 }

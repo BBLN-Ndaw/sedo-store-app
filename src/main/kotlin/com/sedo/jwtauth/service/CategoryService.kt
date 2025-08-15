@@ -1,13 +1,11 @@
 package com.sedo.jwtauth.service
 
 import com.sedo.jwtauth.exception.ResourceNotFoundException
-import com.sedo.jwtauth.model.dto.CategoryDto
 import com.sedo.jwtauth.model.entity.Category
 import com.sedo.jwtauth.repository.CategoryRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
-import java.time.Instant
 import kotlin.jvm.optionals.getOrNull
 
 @Service
@@ -22,35 +20,32 @@ class CategoryService(
         logger.debug("Retrieving all categories")
         return categoryRepository.findByIsActiveTrue()
     }
+
+    fun getAllCategoriesByIdIn(ids: Set<String>): List<Category> {
+        logger.debug("Retrieving categories by IDs: {}", ids)
+        return categoryRepository.findAllByIdIn(ids)
+    }
     
     fun getCategoryById(id: String): Category {
         logger.debug("Retrieving category with ID: {}", id)
         return categoryRepository.findById(id).getOrNull()
             ?: throw ResourceNotFoundException("Category not found with ID: $id")
     }
-    
-    fun getMainCategories(): List<Category> {
-        logger.debug("Retrieving main categories")
-        return categoryRepository.findByParentCategoryIdIsNull()
+
+    fun getCategoriesByName(name: String): List<Category> {
+        logger.debug("Searching categories by name: {}", name)
+        return categoryRepository.findByNameContainingIgnoreCase(name)
     }
     
-    fun getSubCategories(parentId: String): List<Category> {
-        logger.debug("Retrieving subcategories for parent ID: {}", parentId)
-        return categoryRepository.findByParentCategoryId(parentId)
-    }
-    
-    fun createCategory(categoryDto: CategoryDto): Category {
+    fun createCategory(category: Category): Category {
         val currentUser = SecurityContextHolder.getContext().authentication.name
         
-        logger.info("Creating new category: {} by user: {}", categoryDto.name, currentUser)
+        logger.info("Creating new category: {} by user: {}", category.name, currentUser)
         
         val category = Category(
-            name = categoryDto.name,
-            description = categoryDto.description,
-            parentCategoryId = categoryDto.parentCategoryId,
-            isActive = categoryDto.isActive,
-            createdAt = Instant.now(),
-            createdBy = currentUser
+            name = category.name,
+            description = category.description,
+            isActive = category.isActive,
         )
         
         val savedCategory = categoryRepository.save(category)
@@ -64,7 +59,6 @@ class CategoryService(
             newData = mapOf(
                 "name" to savedCategory.name,
                 "description" to (savedCategory.description ?: ""),
-                "parentCategoryId" to (savedCategory.parentCategoryId ?: "")
             )
         )
         
@@ -72,7 +66,7 @@ class CategoryService(
         return savedCategory
     }
     
-    fun updateCategory(id: String, categoryDto: CategoryDto): Category {
+    fun updateCategory(id: String, category: Category): Category {
         val currentUser = SecurityContextHolder.getContext().authentication.name
         val existingCategory = getCategoryById(id)
         
@@ -81,16 +75,12 @@ class CategoryService(
         val oldData = mapOf(
             "name" to existingCategory.name,
             "description" to (existingCategory.description ?: ""),
-            "parentCategoryId" to (existingCategory.parentCategoryId ?: "")
         )
         
         val updatedCategory = existingCategory.copy(
-            name = categoryDto.name,
-            description = categoryDto.description,
-            parentCategoryId = categoryDto.parentCategoryId,
-            isActive = categoryDto.isActive,
-            updatedAt = Instant.now(),
-            updatedBy = currentUser
+            name = category.name,
+            description = category.description,
+            isActive = category.isActive,
         )
         
         val savedCategory = categoryRepository.save(updatedCategory)
@@ -105,7 +95,6 @@ class CategoryService(
             newData = mapOf(
                 "name" to savedCategory.name,
                 "description" to (savedCategory.description ?: ""),
-                "parentCategoryId" to (savedCategory.parentCategoryId ?: "")
             )
         )
         
@@ -119,11 +108,9 @@ class CategoryService(
         
         logger.info("Deleting category ID: {} by user: {}", id, currentUser)
         
-        // Soft delete - marque comme inactif au lieu de supprimer
+        // Soft delete
         val deletedCategory = category.copy(
             isActive = false,
-            updatedAt = Instant.now(),
-            updatedBy = currentUser
         )
         
         categoryRepository.save(deletedCategory)
@@ -139,8 +126,8 @@ class CategoryService(
         logger.info("Category deleted successfully ID: {}", id)
     }
     
-    fun searchCategories(query: String): List<Category> {
-        logger.debug("Searching categories with query: {}", query)
-        return categoryRepository.findByNameContainingIgnoreCase(query)
+    fun getAllDeletedCategories(): List<Category> {
+        logger.debug("Retrieving all deleted categories")
+        return categoryRepository.findByIsActiveFalse()
     }
 }

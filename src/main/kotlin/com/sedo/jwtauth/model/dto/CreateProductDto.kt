@@ -1,13 +1,13 @@
 package com.sedo.jwtauth.model.dto
 
+import com.sedo.jwtauth.constants.Constants.Product.MARGE
 import jakarta.validation.constraints.*
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDateTime
 
-data class ProductDto(
+data class CreateProductDto(
     val id: String? = null,
-
     @field:NotBlank(message = "Product name is required")
     @field:Size(min = 2, max = 200, message = "Product name must be between 2 and 200 characters")
     val name: String,
@@ -19,15 +19,19 @@ data class ProductDto(
     @field:Size(min = 3, max = 50, message = "SKU must be between 3 and 50 characters")
     val sku: String,
 
-    @field:NotNull(message = "Category ID is required")
+    @field:NotNull(message = "Category is required")
     val categoryId: String,
 
-    @field:NotNull(message = "Supplier ID is required")
+    @field:NotNull(message = "Supplier is required")
     val supplierId: String,
 
     @field:NotNull(message = "Selling price is required")
     @field:DecimalMin(value = "0.0", inclusive = false, message = "Selling price must be greater than 0")
     val sellingPrice: BigDecimal,
+
+    @field:NotNull(message = "margin is required")
+    @field:DecimalMin(value = "0.3", inclusive = false, message = "margin must equal ore greater than 30%")
+    val margin: BigDecimal = BigDecimal(MARGE),
 
     @field:Min(value = 0, message = "Stock quantity cannot be negative")
     val stockQuantity: Int = 0,

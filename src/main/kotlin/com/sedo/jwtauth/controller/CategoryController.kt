@@ -1,7 +1,8 @@
 package com.sedo.jwtauth.controller
 
+import com.sedo.jwtauth.mapper.toDto
+import com.sedo.jwtauth.mapper.toEntity
 import com.sedo.jwtauth.model.dto.CategoryDto
-import com.sedo.jwtauth.model.entity.Category
 import com.sedo.jwtauth.service.CategoryService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -16,34 +17,26 @@ class CategoryController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
-    fun getAllCategories(): ResponseEntity<List<Category>> {
-        return ResponseEntity.ok(categoryService.getAllCategories())
+    fun getAllCategories(): ResponseEntity<List<CategoryDto>> {
+        return ResponseEntity.ok(categoryService.getAllCategories().map { it.toDto() })
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
-    fun getCategoryById(@PathVariable id: String): ResponseEntity<Category> {
-        return ResponseEntity.ok(categoryService.getCategoryById(id))
+    fun getCategoryById(@PathVariable id: String): ResponseEntity<CategoryDto> {
+        return ResponseEntity.ok(categoryService.getCategoryById(id).toDto())
     }
-    
-    @GetMapping("/main")
+
+    @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
-    fun getMainCategories(): ResponseEntity<List<Category>> {
-        return ResponseEntity.ok(categoryService.getMainCategories())
-    }
-    
-    @GetMapping("/{parentId}/subcategories")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
-    fun getSubCategories(@PathVariable parentId: String): ResponseEntity<List<Category>> {
-        return ResponseEntity.ok(categoryService.getSubCategories(parentId))
+    fun searchCategories(@RequestParam query: String): ResponseEntity<List<CategoryDto>> {
+        return ResponseEntity.ok(categoryService.getCategoriesByName(query).map { it.toDto() })
     }
     
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun createCategory(@Valid @RequestBody categoryDto: CategoryDto): ResponseEntity<Category> {
+    fun createCategory(@Valid @RequestBody categoryDto: CategoryDto): ResponseEntity<CategoryDto> {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(categoryService.createCategory(categoryDto))
+            .body(categoryService.createCategory(categoryDto.toEntity()).run { categoryDto })
     }
     
     @PutMapping("/{id}")
@@ -51,20 +44,22 @@ class CategoryController(
     fun updateCategory(
         @PathVariable id: String,
         @Valid @RequestBody categoryDto: CategoryDto
-    ): ResponseEntity<Category> {
-        return ResponseEntity.ok(categoryService.updateCategory(id, categoryDto))
+    ): ResponseEntity<CategoryDto> {
+        return ResponseEntity.ok(categoryService.updateCategory(id, categoryDto.toEntity()).toDto())
     }
     
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    fun deleteCategory(@PathVariable id: String): ResponseEntity<Void> {
+    fun deleteCategory(@PathVariable id: String): ResponseEntity<CategoryDto> {
         categoryService.deleteCategory(id)
         return ResponseEntity.noContent().build()
     }
-    
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
-    fun searchCategories(@RequestParam query: String): ResponseEntity<List<Category>> {
-        return ResponseEntity.ok(categoryService.searchCategories(query))
+
+    @GetMapping("/deleted")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+    fun getDeletedCategories(): ResponseEntity<List<CategoryDto>> {
+        return ResponseEntity.ok(categoryService.getAllDeletedCategories().map { it.toDto() })
     }
+    
+
 }

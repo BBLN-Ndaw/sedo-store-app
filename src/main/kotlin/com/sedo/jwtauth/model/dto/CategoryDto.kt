@@ -12,7 +12,6 @@ data class CategoryDto(
     
     @field:Size(max = 500, message = "Description must not exceed 500 characters")
     val description: String? = null,
-    
-    val parentCategoryId: String? = null,
+
     val isActive: Boolean = true
 )

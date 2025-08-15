@@ -1,14 +1,14 @@
 package com.sedo.jwtauth.service
 
+import Product
 import com.sedo.jwtauth.exception.ProductNotFoundException
-import com.sedo.jwtauth.model.dto.ProductDto
-import com.sedo.jwtauth.model.entity.Product
 import com.sedo.jwtauth.repository.ProductRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.Instant
-import java.time.LocalDate
+import java.time.temporal.ChronoUnit.DAYS
 
 @Service
 class ProductService(
@@ -22,62 +22,63 @@ class ProductService(
         logger.debug("Retrieving all products")
         return productRepository.findByIsActiveTrue()
     }
+
+
+    fun getAllProductsOnPromotion(): List<Product> {
+        logger.debug("Retrieving all products on promotion")
+        return productRepository.findByIsOnPromotionTrueAndIsActiveTrue()
+    }
+
+    fun findBycategoryId(categoryId: String): List<Product> {
+        logger.debug("Retrieving products for categoryId ID: {}", categoryId)
+        return productRepository.findByCategoryIdAndIsActiveTrue(categoryId)
+    }
+
+    fun findBySupplierId(supplierId: String): List<Product> {
+        logger.debug("Retrieving products for supplier ID: {}", supplierId)
+        return productRepository.findBySupplierIdAndIsActiveTrue(supplierId)
+    }
+
+    fun findBySellingPriceRange(minPrice: BigDecimal, maxPrice: BigDecimal): List<Product> {
+        logger.debug("Retrieving products with selling price between {} and {}", minPrice, maxPrice)
+        return productRepository.findBySellingPriceBetween(minPrice, maxPrice)
+    }
+
+    fun getLowStockProducts(): List<Product> {
+        logger.debug("Retrieving all low stock products")
+        return productRepository.findLowStockProducts()
+    }
+
+    fun getOutOfStockProducts(): List<Product> {
+        logger.debug("Retrieving all out of stock products")
+        return productRepository.findOutOfStockProducts()
+    }
     
     fun getProductById(id: String): Product {
         logger.debug("Retrieving product with ID: {}", id)
         return productRepository.findById(id).orElse(null)
             ?: throw ProductNotFoundException(id)
     }
-    
-    fun getProductsByCategory(categoryId: String): List<Product> {
-        logger.debug("Retrieving products for category: {}", categoryId)
-        return productRepository.findByCategoryIdAndIsActiveTrue(categoryId)
+
+    fun getProductsExpiringIn(days: Long): List<Product> {
+        val now = Instant.now()
+        val targetDate = now.plus(days, DAYS)
+        return productRepository.findByExpirationDateBetween(now, targetDate)
     }
-    
-    fun getProductsBySupplier(supplierId: String): List<Product> {
-        logger.debug("Retrieving products for supplier: {}", supplierId)
-        return productRepository.findBySupplierIdAndIsActiveTrue(supplierId)
+    fun getProductsByNameOrSku(query: String): List<Product> {
+        logger.debug("Searching products with query: {}", query)
+        return productRepository.findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndIsActiveTrue(query)
     }
-    
-    fun getLowStockProducts(threshold: Int = 10): List<Product> {
-        logger.debug("Retrieving products with stock below: {}", threshold)
-        return productRepository.findByStockQuantityLessThanAndIsActiveTrue(threshold)
-    }
-    
+
     fun getExpiredProducts(): List<Product> {
-        val today = LocalDate.now()
+        val today = Instant.now()
         logger.debug("Retrieving expired products as of: {}", today)
-        return productRepository.findByExpirationDateBeforeAndIsActiveTrue(today)
+        return productRepository.findByExpirationDateBefore(today)
     }
     
-    fun getExpiringProducts(days: Long = 7): List<Product> {
-        val futureDate = LocalDate.now().plusDays(days)
-        logger.debug("Retrieving products expiring before: {}", futureDate)
-        return productRepository.findByExpirationDateBetweenAndIsActiveTrue(LocalDate.now(), futureDate)
-    }
-    
-    fun createProduct(productDto: ProductDto): Product {
+    fun createProduct(product: Product): Product {
         val currentUser = SecurityContextHolder.getContext().authentication.name
-        logger.info("Creating product: {} by user: {}", productDto.name, currentUser)
-        
-        val product = Product(
-            name = productDto.name,
-            description = productDto.description,
-            sku = productDto.sku,
-            categoryId = productDto.categoryId,
-            supplierId = productDto.supplierId,
-            purchasePrice = productDto.purchasePrice,
-            sellingPrice = productDto.sellingPrice,
-            stockQuantity = productDto.stockQuantity,
-            minimumStock = productDto.minimumStock,
-            unit = productDto.unit,
-            expirationDate = productDto.expirationDate,
-            imageUrls = productDto.imageUrls,
-            tags = productDto.tags,
-            isActive = productDto.isActive,
-            createdAt = Instant.now()
-        )
-        
+        logger.info("Creating product: {} by user: {}", product.name, currentUser)
         val savedProduct = productRepository.save(product)
         
         auditService.logAction(
@@ -93,44 +94,41 @@ class ProductService(
                 "stockQuantity" to savedProduct.stockQuantity.toString()
             )
         )
-        
         logger.info("Product created successfully: {} (ID: {})", savedProduct.name, savedProduct.id)
         return savedProduct
     }
     
-    fun updateProduct(id: String, productDto: ProductDto): Product {
+    fun updateProduct(id: String, product: Product): Product {
         val currentUser = SecurityContextHolder.getContext().authentication.name
         logger.info("Updating product ID: {} by user: {}", id, currentUser)
-        
+
         val existingProduct = getProductById(id)
-        
+
         val oldData = mapOf(
             "name" to existingProduct.name,
             "sellingPrice" to existingProduct.sellingPrice.toString(),
             "stockQuantity" to existingProduct.stockQuantity.toString(),
-            "minimumStock" to existingProduct.minimumStock.toString()
+            "minimumStock" to existingProduct.minStock.toString()
         )
         
         val updatedProduct = existingProduct.copy(
-            name = productDto.name,
-            description = productDto.description,
-            sku = productDto.sku,
-            categoryId = productDto.categoryId,
-            supplierId = productDto.supplierId,
-            purchasePrice = productDto.purchasePrice,
-            sellingPrice = productDto.sellingPrice,
-            stockQuantity = productDto.stockQuantity,
-            minimumStock = productDto.minimumStock,
-            unit = productDto.unit,
-            expirationDate = productDto.expirationDate,
-            imageUrls = productDto.imageUrls,
-            tags = productDto.tags,
-            isActive = productDto.isActive,
-            updatedAt = Instant.now()
+            name = product.name,
+            description = product.description,
+            sku = product.sku,
+            categoryId = product.categoryId,
+            supplierId = product.supplierId,
+            purchasePrice = product.purchasePrice,
+            sellingPrice = product.sellingPrice,
+            stockQuantity = product.stockQuantity,
+            minStock = product.minStock,
+            unit = product.unit,
+            expirationDate = product.expirationDate,
+            images = product.images,
+            isActive = product.isActive,
         )
         
         val savedProduct = productRepository.save(updatedProduct)
-        
+
         auditService.logAction(
             userName = currentUser,
             action = "UPDATE",
@@ -142,7 +140,7 @@ class ProductService(
                 "name" to savedProduct.name,
                 "sellingPrice" to savedProduct.sellingPrice.toString(),
                 "stockQuantity" to savedProduct.stockQuantity.toString(),
-                "minimumStock" to savedProduct.minimumStock.toString()
+                "minimumStock" to savedProduct.minStock.toString()
             )
         )
         
@@ -156,11 +154,7 @@ class ProductService(
         
         val existingProduct = getProductById(id)
         
-        // Soft delete - on désactive au lieu de supprimer
-        val deletedProduct = existingProduct.copy(
-            isActive = false,
-            updatedAt = Instant.now()
-        )
+        val deletedProduct = existingProduct.copy(isActive = false)
         
         productRepository.save(deletedProduct)
         
@@ -175,7 +169,11 @@ class ProductService(
         logger.info("Product deactivated successfully: {} (ID: {})", deletedProduct.name, deletedProduct.id)
         return deletedProduct
     }
-    
+
+    fun getAllDeletedProducts(): List<Product> {
+        logger.debug("Retrieving all deleted products")
+        return productRepository.findByIsActiveFalse()
+    }
     fun updateStock(productId: String, newQuantity: Int, reason: String): Product {
         val currentUser = SecurityContextHolder.getContext().authentication.name
         logger.info("Updating stock for product ID: {} to {} by user: {}", productId, newQuantity, currentUser)
@@ -183,10 +181,7 @@ class ProductService(
         val existingProduct = getProductById(productId)
         val oldQuantity = existingProduct.stockQuantity
         
-        val updatedProduct = existingProduct.copy(
-            stockQuantity = newQuantity,
-            updatedAt = Instant.now()
-        )
+        val updatedProduct = existingProduct.copy(stockQuantity = newQuantity)
         
         val savedProduct = productRepository.save(updatedProduct)
         
@@ -202,10 +197,5 @@ class ProductService(
         
         logger.info("Stock updated successfully for product: {} (ID: {})", savedProduct.name, savedProduct.id)
         return savedProduct
-    }
-    
-    fun searchProducts(query: String): List<Product> {
-        logger.debug("Searching products with query: {}", query)
-        return productRepository.findByNameContainingIgnoreCaseOrSkuContainingIgnoreCaseAndIsActiveTrue(query, query)
     }
 }

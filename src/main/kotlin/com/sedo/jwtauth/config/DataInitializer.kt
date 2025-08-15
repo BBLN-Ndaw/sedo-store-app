@@ -1,8 +1,10 @@
 package com.sedo.jwtauth.config
 
+import Product
 import com.sedo.jwtauth.model.entity.Category
 import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.CategoryRepository
+import com.sedo.jwtauth.repository.ProductRepository
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,6 +17,7 @@ import java.time.Instant
 class DataInitializer @Autowired constructor(
     private val userRepository: UserRepository,
     private val categoryRepository: CategoryRepository,
+    private val productRepository: ProductRepository,
     private val passwordEncoder: BCryptPasswordEncoder
 ) : CommandLineRunner {
     
@@ -25,6 +28,7 @@ class DataInitializer @Autowired constructor(
         
         initializeUsers()
         initializeCategories()
+        initializeProducts()
         
         logger.info("Data initialization completed")
     }
@@ -70,115 +74,35 @@ class DataInitializer @Autowired constructor(
                 logger.info("{} user already exists", user.roles.joinToString())
             }
         }
+
     }
-    
+
     private fun initializeCategories() {
-        logger.info("Initializing default categories...")
-        
-        // Vérifier si des catégories existent déjà
-        if (categoryRepository.count() > 0) {
-            logger.info("Categories already exist, skipping initialization")
-            return
+        mockCategories.forEach { category ->
+            if (categoryRepository.findById(category.id!!).isEmpty) {
+                val category = Category(
+                    name = category.name,
+                    description = category.description,
+                    isActive = true
+                )
+                categoryRepository.save(category)
+                logger.info("Default category '{}' created", category.name)
+            } else {
+                logger.info("Category '{}' already exists", category.name)
+            }
         }
-        
-        val now = Instant.now()
-        
-        // Catégories principales
-        val alimentaire = categoryRepository.save(Category(
-            name = "Alimentaire",
-            description = "Produits alimentaires et boissons",
-            isActive = true,
-            createdAt = now,
-            createdBy = "system"
-        ))
-        
-        val electronique = categoryRepository.save(Category(
-            name = "Électronique",
-            description = "Appareils électroniques et accessoires",
-            isActive = true,
-            createdAt = now,
-            createdBy = "system"
-        ))
-        
-        val hygiene = categoryRepository.save(Category(
-            name = "Hygiène & Beauté",
-            description = "Produits d'hygiène et cosmétiques",
-            isActive = true,
-            createdAt = now,
-            createdBy = "system"
-        ))
-        
-        val maison = categoryRepository.save(Category(
-            name = "Maison & Jardin",
-            description = "Articles pour la maison et le jardin",
-            isActive = true,
-            createdAt = now,
-            createdBy = "system"
-        ))
-        
-        // Sous-catégories Alimentaire
-        val sousCategories = listOf(
-            Category(
-                name = "Fruits & Légumes",
-                description = "Fruits et légumes frais",
-                parentCategoryId = alimentaire.id,
-                isActive = true,
-                createdAt = now,
-                createdBy = "system"
-            ),
-            Category(
-                name = "Viandes & Poissons",
-                description = "Produits carnés et poissons",
-                parentCategoryId = alimentaire.id,
-                isActive = true,
-                createdAt = now,
-                createdBy = "system"
-            ),
-            Category(
-                name = "Produits Laitiers",
-                description = "Lait, fromages, yaourts",
-                parentCategoryId = alimentaire.id,
-                isActive = true,
-                createdAt = now,
-                createdBy = "system"
-            ),
-            Category(
-                name = "Boissons",
-                description = "Boissons alcoolisées et non alcoolisées",
-                parentCategoryId = alimentaire.id,
-                isActive = true,
-                createdAt = now,
-                createdBy = "system"
-            ),
-            // Sous-catégories Électronique
-            Category(
-                name = "Smartphones & Tablettes",
-                description = "Téléphones et tablettes",
-                parentCategoryId = electronique.id,
-                isActive = true,
-                createdAt = now,
-                createdBy = "system"
-            ),
-            Category(
-                name = "Ordinateurs",
-                description = "PC, laptops et accessoires",
-                parentCategoryId = electronique.id,
-                isActive = true,
-                createdAt = now,
-                createdBy = "system"
-            ),
-            Category(
-                name = "Électroménager",
-                description = "Appareils électroménagers",
-                parentCategoryId = electronique.id,
-                isActive = true,
-                createdAt = now,
-                createdBy = "system"
-            )
-        )
-        
-        categoryRepository.saveAll(sousCategories)
-        
-        logger.info("Default categories created successfully")
+    }
+
+    fun initializeProducts() {
+        mockProducts.forEach { product ->
+            if (productRepository.findById(product.id!!).isEmpty) {
+                productRepository.save(product)
+                logger.info("Default product '{}' created", product.name)
+            } else {
+                logger.info("yaya Product '{}' already exists", productRepository.findById(product.id!!))
+                logger.info("Product '{}' already exists", product.name)
+            }
+
+        }
     }
 }

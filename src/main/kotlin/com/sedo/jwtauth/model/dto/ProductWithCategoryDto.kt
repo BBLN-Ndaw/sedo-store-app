@@ -1,11 +1,17 @@
 package com.sedo.jwtauth.model.dto
 
-import jakarta.validation.constraints.*
+import com.sedo.jwtauth.model.entity.Category
+import jakarta.validation.constraints.DecimalMin
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDateTime
 
-data class ProductDto(
+data class ProductWithCategoryDto(
+
     val id: String? = null,
 
     @field:NotBlank(message = "Product name is required")
@@ -19,8 +25,8 @@ data class ProductDto(
     @field:Size(min = 3, max = 50, message = "SKU must be between 3 and 50 characters")
     val sku: String,
 
-    @field:NotNull(message = "Category ID is required")
-    val categoryId: String,
+    @field:NotNull(message = "Category  is required")
+    val category: Category,
 
     @field:NotNull(message = "Supplier ID is required")
     val supplierId: String,
