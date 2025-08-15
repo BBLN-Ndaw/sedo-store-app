@@ -32,7 +32,7 @@ class CategoryService(
             ?: throw ResourceNotFoundException("Category not found with ID: $id")
     }
 
-    fun getCategoriesByName(name: String): List<Category> {
+    fun getCategoryByName(name: String): Category? {
         logger.debug("Searching categories by name: {}", name)
         return categoryRepository.findByNameContainingIgnoreCase(name)
     }

@@ -28,8 +28,8 @@ class CategoryController(
 
     @GetMapping("/search")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CUSTOMER')")
-    fun searchCategories(@RequestParam query: String): ResponseEntity<List<CategoryDto>> {
-        return ResponseEntity.ok(categoryService.getCategoriesByName(query).map { it.toDto() })
+    fun searchCategories(@RequestParam query: String): ResponseEntity<CategoryDto> {
+        return ResponseEntity.ok(categoryService.getCategoryByName(query)?.toDto() )
     }
     
     @PostMapping

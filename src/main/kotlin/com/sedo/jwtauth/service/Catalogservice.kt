@@ -2,6 +2,8 @@ package com.sedo.jwtauth.service
 
 import com.sedo.jwtauth.model.dto.ProductWithCategoryDto
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime.ofInstant
+import java.time.ZoneId.systemDefault
 
 @Service
 class Catalogservice(
@@ -13,7 +15,7 @@ class Catalogservice(
         val categoryIds = products.map { it.categoryId }.toSet()
         val categories = categoryService.getAllCategoriesByIdIn(categoryIds)
             .associateBy { it.id!! }
-
+        println("Categories fetched: "+categories)
         return products.map { product ->
             ProductWithCategoryDto(
                 id = product.id!!,
@@ -24,6 +26,9 @@ class Catalogservice(
                 supplierId = product.supplierId,
                 sellingPrice = product.sellingPrice,
                 stockQuantity = product.stockQuantity,
+                isOnPromotion = product.isOnPromotion,
+                promotionPrice = product.promotionPrice,
+                promotionEndDate = ofInstant(product.promotionEndDate, systemDefault()),
                 unit = product.unit,
                 expirationDate = product.expirationDate,
                 imageUrls = product.images,

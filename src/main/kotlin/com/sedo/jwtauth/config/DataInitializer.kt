@@ -79,12 +79,7 @@ class DataInitializer @Autowired constructor(
 
     private fun initializeCategories() {
         mockCategories.forEach { category ->
-            if (categoryRepository.findById(category.id!!).isEmpty) {
-                val category = Category(
-                    name = category.name,
-                    description = category.description,
-                    isActive = true
-                )
+            if (categoryRepository.findByNameContainingIgnoreCase(category.name) == null) {
                 categoryRepository.save(category)
                 logger.info("Default category '{}' created", category.name)
             } else {
@@ -99,7 +94,6 @@ class DataInitializer @Autowired constructor(
                 productRepository.save(product)
                 logger.info("Default product '{}' created", product.name)
             } else {
-                logger.info("yaya Product '{}' already exists", productRepository.findById(product.id!!))
                 logger.info("Product '{}' already exists", product.name)
             }
 

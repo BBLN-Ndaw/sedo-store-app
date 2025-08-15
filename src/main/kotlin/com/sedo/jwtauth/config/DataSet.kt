@@ -6,10 +6,16 @@ import org.bson.types.ObjectId
 import java.math.BigDecimal
 import java.time.Instant
 
-val catElectroniqueId = ObjectId().toString()
-val catAudioId = ObjectId().toString()
-val catWearablesId = ObjectId().toString()
-val catPhotoVideoId = ObjectId().toString()
+val catElectroniqueId = "689f8e1ab9ee73091c8ba684"
+val catAudioId = "689f8e1ab9ee73091c8ba685"
+val catWearablesId = "689f8e1ab9ee73091c8ba686"
+val catPhotoVideoId = "689f8e1ab9ee73091c8ba687"
+val smartPhoneProdtucId = "689f8e1ab9ee73091c8ba686"
+val ordinateurProdtucId = "716f8e1ab9ee73091c8ba634"
+val casqueProdtucId = "310f8e1ab9ee73091c8ba632"
+val montreProdtucId = "210f8e1ab9ee73091c8ba632"
+val tabletteProdtucId = "410f8e1ab9ee73091c8ba633"
+val cameraProdtucId = "510f8e1ab9ee73091c8ba635"
 
 val mockCategories = listOf(
     Category(catElectroniqueId, "Électronique", "Appareils électroniques", true),
@@ -20,7 +26,7 @@ val mockCategories = listOf(
 
 val mockProducts = listOf(
     Product(
-        id = ObjectId().toString(),
+        id = smartPhoneProdtucId,
         name = "Smartphone Premium X1",
         description = "Smartphone haut de gamme avec écran OLED 6.5\" et triple caméra 108MP",
         sku = "PHONE-X1-001",
@@ -41,7 +47,7 @@ val mockProducts = listOf(
         updatedAt = Instant.parse("2024-02-01T00:00:00Z")
     ),
     Product(
-        id = ObjectId().toString(),
+        id = ordinateurProdtucId,
         name = "Ordinateur Portable Gaming",
         description = "PC portable gaming avec RTX 4070, Intel i7 et 16GB RAM",
         sku = "LAPTOP-GAM-002",
@@ -59,7 +65,7 @@ val mockProducts = listOf(
         updatedAt = Instant.parse("2024-02-05T00:00:00Z")
     ),
     Product(
-        id = ObjectId().toString(),
+        id = casqueProdtucId,
         name = "Casque Audio Bluetooth",
         description = "Casque sans fil avec réduction de bruit active et autonomie 30h",
         sku = "AUDIO-BT-003",
@@ -80,7 +86,7 @@ val mockProducts = listOf(
         updatedAt = Instant.parse("2024-02-10T00:00:00Z")
     ),
     Product(
-        id = ObjectId().toString(),
+        id = montreProdtucId,
         name = "Montre Connectée Sport",
         description = "Montre connectée étanche avec GPS et suivi de santé avancé",
         sku = "WATCH-SPT-004",
@@ -98,7 +104,7 @@ val mockProducts = listOf(
         updatedAt = Instant.parse("2024-02-15T00:00:00Z")
     ),
     Product(
-        id = ObjectId().toString(),
+        id = tabletteProdtucId,
         name = "Tablette Graphique Pro",
         description = "Tablette professionnelle pour designers avec stylet sensible à la pression",
         sku = "TAB-GRAPH-005",
@@ -119,7 +125,7 @@ val mockProducts = listOf(
         updatedAt = Instant.parse("2024-02-20T00:00:00Z")
     ),
     Product(
-        id = ObjectId().toString(),
+        id = cameraProdtucId,
         name = "Caméra Action 4K",
         description = "Caméra d'action ultra-compacte 4K 60fps avec stabilisation",
         sku = "CAM-ACT-006",
