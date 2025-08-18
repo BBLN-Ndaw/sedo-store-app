@@ -5,6 +5,7 @@ import com.sedo.jwtauth.exception.InvalidPasswordException
 import com.sedo.jwtauth.exception.UserNotFoundException
 import com.sedo.jwtauth.model.dto.Address
 import com.sedo.jwtauth.model.dto.CreateUserDto
+import com.sedo.jwtauth.model.dto.UpdatePasswordDto
 import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -85,7 +86,7 @@ class UserService @Autowired constructor(
         return updatedUser
     }
 
-    fun updatePassword(id: String, currentPassword: String, newPassword: String) {
+    fun updatePassword(id: String, currentPassword: String, newPassword: String): UpdatePasswordDto {
         logger.info("Updating password for user ID: {}", id)
         
         val user = getUserById(id)
@@ -98,6 +99,7 @@ class UserService @Autowired constructor(
         val updatedUser = user.copy(password = passwordEncoder.encode(newPassword))
         userRepository.save(updatedUser)
         logger.info("Password updated successfully for user ID: {}", id)
+        return UpdatePasswordDto(currentPassword = currentPassword, newPassword = newPassword)
     }
 
     fun deleteUser(id: String): User {

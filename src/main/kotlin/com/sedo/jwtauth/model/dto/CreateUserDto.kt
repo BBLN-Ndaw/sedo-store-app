@@ -4,6 +4,7 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import java.time.Instant
 
 data class CreateUserDto(
     @field:NotBlank(message = "Username is required")
@@ -35,7 +36,9 @@ data class CreateUserDto(
     val isActive: Boolean = true,
 
     @field:Size(min = 1, message = "At least one role is required")
-    val roles: List<String> = listOf("CLIENT")
+    val roles: List<String> = listOf("CLIENT"),
+
+    val createdAt: Instant? = null
 )
 
 /**

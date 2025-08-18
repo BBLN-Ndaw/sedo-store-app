@@ -76,9 +76,9 @@ class UserController @Autowired constructor(
     fun updateUserPassword(
         @PathVariable id: String,
         @Valid @RequestBody passwordUpdate: UpdatePasswordDto
-    ): ResponseEntity<Map<String, String>> {
-        userService.updatePassword(id, passwordUpdate.currentPassword, passwordUpdate.newPassword)
-        return ResponseEntity.ok(mapOf("message" to "Password updated successfully"))
+    ): ResponseEntity<UpdatePasswordDto> {
+        return userService.updatePassword(id, passwordUpdate.currentPassword, passwordUpdate.newPassword)
+            .let { ResponseEntity.ok(it) }
     }
 
     @DeleteMapping("/{id}")

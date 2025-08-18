@@ -3,6 +3,7 @@ package com.sedo.jwtauth.model.dto
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import java.time.Instant
 
 data class UserDto(
     val id: String? = null,
@@ -31,6 +32,8 @@ data class UserDto(
 
     @field:Size(min = 1, message = "At least one role is required")
     val roles: List<String> = listOf("CLIENT"),
+
+    val createdAt: Instant? = null,
 )
 
 data class Address(

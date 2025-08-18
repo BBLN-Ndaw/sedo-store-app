@@ -45,7 +45,7 @@ class DataInitializer @Autowired constructor(
                 firstName = "Dupond",
                 lastName = "MARCEL",
                 numTel = "0723456789",
-                address = Address("1 rue de la Paix", "75001", "Paris", "France"),
+                address = Address("1 rue de la Paix", "Paris", "75001", "France"),
                 isActive = true,
                 roles = listOf("ADMIN")
             ),
@@ -56,7 +56,7 @@ class DataInitializer @Autowired constructor(
                 firstName = "Olivier",
                 lastName = "Dupont",
                 numTel = "0623456789",
-                address = Address("1 rue Marcelin Berthelot", "93300", "Aubervilliers", "France"),
+                address = Address("1 rue Marcelin Berthelot", "Aubervilliers", "93300", "France"),
                 isActive = true,
                 roles = listOf("EMPLOYEE")
             ),
@@ -67,7 +67,7 @@ class DataInitializer @Autowired constructor(
                 firstName = "Marie",
                 lastName = "CLAIRE",
                 numTel = "0789456702",
-                address = Address("15 rue de la Mouet", "75013", "Paris", "France"),
+                address = Address("15 rue de la Mouet", "Paris", "75013", "France"),
                 isActive = true,
                 roles = listOf("CUSTOMER")
             )

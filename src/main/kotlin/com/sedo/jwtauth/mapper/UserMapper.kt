@@ -13,7 +13,8 @@ fun User.toDto(): UserDto = UserDto(
     numTel = this.numTel,
     isActive = this.isActive,
     roles = this.roles,
-    address = this.address
+    address = this.address,
+    createdAt = this.createdAt,
 )
 fun UserDto.toCreateUserDto(passWord: String? = null): CreateUserDto = CreateUserDto(
     username = this.userName,
@@ -37,6 +38,7 @@ fun CreateUserDto.toEntity(): User = User(
     numTel = this.numTel,
     isActive = this.isActive,
     roles = this.roles,
+    createdAt = this.createdAt
 )
 
 
