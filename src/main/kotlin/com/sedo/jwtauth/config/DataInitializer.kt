@@ -1,6 +1,7 @@
 package com.sedo.jwtauth.config
 
 import Product
+import com.sedo.jwtauth.model.dto.Address
 import com.sedo.jwtauth.model.entity.Category
 import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.CategoryRepository
@@ -43,6 +44,8 @@ class DataInitializer @Autowired constructor(
                 email = "Dupond@gmail.com",
                 firstName = "Dupond",
                 lastName = "MARCEL",
+                numTel = "0723456789",
+                address = Address("1 rue de la Paix", "75001", "Paris", "France"),
                 isActive = true,
                 roles = listOf("ADMIN")
             ),
@@ -52,6 +55,8 @@ class DataInitializer @Autowired constructor(
                 email = "Olivier@gmail.com",
                 firstName = "Olivier",
                 lastName = "Dupont",
+                numTel = "0623456789",
+                address = Address("1 rue Marcelin Berthelot", "93300", "Aubervilliers", "France"),
                 isActive = true,
                 roles = listOf("EMPLOYEE")
             ),
@@ -61,6 +66,8 @@ class DataInitializer @Autowired constructor(
                 email = "marie@gmail.com",
                 firstName = "Marie",
                 lastName = "CLAIRE",
+                numTel = "0789456702",
+                address = Address("15 rue de la Mouet", "75013", "Paris", "France"),
                 isActive = true,
                 roles = listOf("CUSTOMER")
             )

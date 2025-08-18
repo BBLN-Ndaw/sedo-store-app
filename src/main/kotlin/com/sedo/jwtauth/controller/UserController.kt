@@ -8,7 +8,6 @@ import com.sedo.jwtauth.model.dto.CreateUserDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
 import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.service.UserService
-import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -57,7 +56,6 @@ class UserController @Autowired constructor(
 
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('OWNER')")
     fun updateUser(
         @PathVariable id: String, 
         @Valid @RequestBody updateRequest: UserDto
@@ -67,6 +65,7 @@ class UserController @Autowired constructor(
            updateRequest.userName,
             updateRequest.firstName,
             updateRequest.lastName,
+            updateRequest.address,
             updateRequest.email,
             updateRequest.isActive,
             updateRequest.roles

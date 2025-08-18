@@ -1,5 +1,6 @@
 package com.sedo.jwtauth.model.entity
 
+import com.sedo.jwtauth.model.dto.Address
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
@@ -35,11 +36,4 @@ data class Supplier(
 
     val createdBy: String? = null,
     val updatedBy: String? = null
-)
-
-data class Address(
-    val street: String,
-    val city: String,
-    val postalCode: String,
-    val country: String = "France"
 )

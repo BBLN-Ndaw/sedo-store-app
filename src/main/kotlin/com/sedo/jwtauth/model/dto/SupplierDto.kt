@@ -1,6 +1,5 @@
 package com.sedo.jwtauth.model.dto
 
-import com.sedo.jwtauth.model.entity.Address
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size

@@ -3,6 +3,7 @@ package com.sedo.jwtauth.service
 import com.sedo.jwtauth.exception.DuplicateUsernameException
 import com.sedo.jwtauth.exception.InvalidPasswordException
 import com.sedo.jwtauth.exception.UserNotFoundException
+import com.sedo.jwtauth.model.dto.Address
 import com.sedo.jwtauth.model.dto.CreateUserDto
 import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.UserRepository
@@ -57,6 +58,7 @@ class UserService @Autowired constructor(
             password = passwordEncoder.encode(createUserDto.password), // ✅ Hash du password
             firstName = createUserDto.firstName,
             lastName = createUserDto.lastName,
+            address = createUserDto.address,
             email = createUserDto.email,
             isActive = createUserDto.isActive,
             roles = createUserDto.roles
@@ -67,13 +69,14 @@ class UserService @Autowired constructor(
         return savedUser
     }
 
-    fun updateUser(idOldUser: String, userName: String?, firstName: String?, lastName: String?, email: String?, isActive: Boolean?, roles: List<String>?): User {
-
+    fun updateUser(idOldUser: String, userName: String?, firstName: String?, lastName: String?, address: Address?, email: String?, isActive: Boolean?, roles: List<String>?): User {
+        logger.info("Updating user ID: {}", idOldUser)
         val user = getUserById(idOldUser)
         val updatedUser = user.copy(
             userName = userName ?: user.userName,
             firstName = firstName ?: user.firstName,
             lastName = lastName ?: user.lastName,
+            address = address ?: user.address,
             email = email ?: user.email,
             isActive = isActive ?: user.isActive,
             roles = roles ?: user.roles

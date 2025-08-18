@@ -1,5 +1,6 @@
 package com.sedo.jwtauth.model.entity
 
+import com.sedo.jwtauth.model.dto.Address
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.index.Indexed
@@ -15,6 +16,8 @@ data class User(
     val email: String,
     val firstName: String,
     val lastName: String,
+    val address: Address,
+    val numTel: String? = null,
     val isActive: Boolean,
     val roles: List<String>,
     @field:CreatedDate

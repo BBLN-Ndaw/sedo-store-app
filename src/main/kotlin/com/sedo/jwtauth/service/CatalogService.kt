@@ -6,7 +6,7 @@ import java.time.LocalDateTime.ofInstant
 import java.time.ZoneId.systemDefault
 
 @Service
-class Catalogservice(
+class CatalogService(
     private val categoryService: CategoryService,
     private val productService: ProductService) {
 
@@ -15,7 +15,6 @@ class Catalogservice(
         val categoryIds = products.map { it.categoryId }.toSet()
         val categories = categoryService.getAllCategoriesByIdIn(categoryIds)
             .associateBy { it.id!! }
-        println("Categories fetched: "+categories)
         return products.map { product ->
             ProductWithCategoryDto(
                 id = product.id!!,
