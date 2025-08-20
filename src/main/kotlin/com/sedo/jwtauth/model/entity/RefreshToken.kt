@@ -12,6 +12,6 @@ data class RefreshToken(
     val userName: String,
     val token: String,
     @field:Indexed(expireAfterSeconds = JWT_REFRESH_TOKEN_MAX_AGE)
-    val createdAt: Instant = Instant.now()
+    var createdAt: Instant = Instant.now()
 )
 

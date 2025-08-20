@@ -2,6 +2,7 @@ package com.sedo.jwtauth.model.entity
 
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
 import java.math.BigDecimal
 import java.time.Instant
@@ -32,7 +33,10 @@ data class Sale(
     val changeAmount: BigDecimal? = null, // Monnaie rendue
 
     @field:CreatedDate
-    val createdAt: Instant? = null,
+    var createdAt: Instant? = null,
+
+    @field:Version
+    var version: Long? = null,
 
     val processedBy: String // ID de l'employé qui fait la vente
 )

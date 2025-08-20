@@ -2,6 +2,7 @@ package com.sedo.jwtauth.model.entity
 
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
 import java.math.BigDecimal
 import java.time.Instant
@@ -28,9 +29,11 @@ data class StockMovement(
     val referenceId: String? = null, // ID de la commande ou vente associée
     
     @field:CreatedDate
-    val createdAt: Instant? = null,
-    
-    val performedBy: String
+    var createdAt: Instant? = null,
+
+    @field:Version
+    var version: Long? = null,
+    var performedBy: String
 )
 
 enum class MovementType {

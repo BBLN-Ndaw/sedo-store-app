@@ -1,8 +1,11 @@
 package com.sedo.jwtauth.model.entity
 
+import com.sedo.jwtauth.model.dto.Address
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.annotation.Version
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.math.BigDecimal
 import java.time.Instant
@@ -11,82 +14,59 @@ import java.time.Instant
 data class Order(
     @Id
     val id: String? = null,
-    
-    val orderNumber: String, // Numéro de commande unique
-
-    val customerName: String, // customer name
-
-    val customerId: String, // ID du client (User)
-    
-    val items: List<OrderItem>,
-    
+    @field:Indexed(unique = true)
+    val orderNumber: String,
+    val customerName: String,
     val status: OrderStatus,
-    
-    val paymentMethod: PaymentMethod,
-    
-    val paymentStatus: PaymentStatus = PaymentStatus.PENDING,
-    
-    val subtotal: BigDecimal,
-    
-    val taxAmount: BigDecimal = BigDecimal.ZERO,
-    
     val totalAmount: BigDecimal,
-    
+    val subtotal: BigDecimal,
+    val shippingAmount: BigDecimal, // Montant des frais de livraison
+    val taxAmount: BigDecimal = BigDecimal.ZERO,
+    val shippingAddress: Address,
+    val billingAddress: Address? = null,
+    val estimatedDeliveryDate: Instant? = null,
     val notes: String? = null,
-    
-    val pickupDate: Instant? = null, // Date de retrait prévue
-    
-    val actualPickupDate: Instant? = null, // Date de retrait effective
-    
-    // Horodatage des changements de statut
-    val confirmedAt: Instant? = null,
-    val confirmedBy: String? = null,
-    val preparingAt: Instant? = null,
-    val preparingBy: String? = null,
-    val readyAt: Instant? = null,
-    val readyBy: String? = null,
-    val completedAt: Instant? = null,
-    val completedBy: String? = null,
-    val cancelledAt: Instant? = null,
-    val cancelledBy: String? = null,
-    val cancelReason: String? = null,
-    
+    val items: List<OrderItem>,
+    val pickupDate: Instant? = null, // Date de retrait effective
+    val processedByUser: String? = null, // nom de la personne qui traite la commande
+    val paymentMethod: PaymentMethod = PaymentMethod.CASH_ON_DELIVERY,
+    val paymentStatus: PaymentStatus = PaymentStatus.PENDING,
     @field:CreatedDate
-    val createdAt: Instant? = null,
-    
+    var createdAt: Instant? = null,
     @field:LastModifiedDate
-    val updatedAt: Instant? = null,
-    
-    val processedBy: String? = null // ID de l'employé qui traite la commande
+    var updatedAt: Instant? = null,
+    @field:Version
+    var version: Long? = null
 )
 
 data class OrderItem(
     val productId: String,
-    val productName: String, // Nom du produit
+    val productName: String,
     val quantity: Int,
     val unitPrice: BigDecimal,
     val totalPrice: BigDecimal
 )
 
 enum class OrderStatus {
-    PENDING,      // En attente
-    CONFIRMED,    // Confirmée
-    PREPARING,    // En préparation
-    READY_FOR_PICKUP,        // Prête pour retrait
-    COMPLETED,    // Terminée
-    CANCELLED     // Annulée
+    PENDING, //Commande créée mais pas encore payée (validaation panier
+    CONFIRMED, // paiement validé, commande à traité par le vendeur
+    PROCESSING, //Le commerçant prépare la commande
+    READY_FOR_PICKUP, //Dans le cas d’un Click & Collect
+    SHIPPED, //Colis remis au transporteur,
+    DELIVERED, // Le client a bien reçu son colis (preuve de livraison ou confirmation client).
+    CANCELLED //Annulée par le client ou par le commerçant
 }
 
 enum class PaymentMethod {
-    CASH,         // Espèces
-    CARD,         // Carte bancaire
-    PAYPAL,       // PayPal
-    BANK_TRANSFER // Virement
+    CREDIT_CARD,
+    PAYPAL,
+    BANK_TRANSFER,
+    CASH_ON_DELIVERY
 }
 
 enum class PaymentStatus {
-    PENDING,      // En attente
-    PAID,         // Payé
-    FAILED,       // Échec
-    REFUNDED      // Remboursé
+    PENDING,
+    COMPLETED,
+    FAILED,
+    REFUNDED
 }

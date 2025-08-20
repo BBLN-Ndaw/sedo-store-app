@@ -1,6 +1,7 @@
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
 import java.math.BigDecimal
 import java.time.Instant
@@ -26,7 +27,9 @@ data class Product(
     val promotionPrice: BigDecimal? = null,
     val promotionEndDate: Instant? = null,
     @field:CreatedDate
-    val createdAt: Instant? = null,
+    var createdAt: Instant? = null,
     @field:LastModifiedDate
-    val updatedAt: Instant? = null,
+    var updatedAt: Instant? = null,
+    @field:Version
+    var version: Long? = null //to let mongo manage auditing field
 )

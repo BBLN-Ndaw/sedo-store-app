@@ -4,6 +4,7 @@ import com.sedo.jwtauth.model.dto.Address
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
@@ -23,7 +24,9 @@ data class User(
     val isActive: Boolean,
     val roles: List<String>,
     @field:CreatedDate
-    val createdAt: Instant? = null,
+    var createdAt: Instant? = null,
     @field:LastModifiedDate
-    val updatedAt: Instant? = null,
+    var updatedAt: Instant? = null,
+    @field:Version
+    var version: Long? = null
 )
