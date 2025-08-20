@@ -23,6 +23,26 @@ class OrderController(
     fun getAllOrders(): ResponseEntity<List<OrderDto>> {
         return ResponseEntity.ok(orderService.getAllOrders().map { it.toDto() })
     }
+    @GetMapping("/customer")
+    fun getOrdersByCustomer(): ResponseEntity<List<OrderDto>> {
+        return ResponseEntity.ok(orderService.getOrdersByCustomerName().map { it.toDto() })
+    }
+
+    @PutMapping("/update/{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+    fun updateOrder(
+        @PathVariable id: String,
+        @RequestBody newOrder: OrderDto
+    ): ResponseEntity<OrderDto> {
+        return ResponseEntity.ok(orderService.updateOrder(id, newOrder.toEntity()).toDto())
+    }
+
+    @PutMapping("/cancel/{id}")
+    fun cancelOrder(
+        @PathVariable id: String,
+    ): ResponseEntity<OrderDto> {
+        return ResponseEntity.ok(orderService.cancelOrder(id).toDto())
+    }
     
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
@@ -36,10 +56,7 @@ class OrderController(
         return ResponseEntity.ok(orderService.getOrdersByStatus(status))
     }
     
-    @GetMapping("/customer")
-    fun getOrdersByCustomer(): ResponseEntity<List<OrderDto>> {
-        return ResponseEntity.ok(orderService.getOrdersByCustomerName().map { it.toDto() })
-    }
+
     
     @GetMapping("/pending")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
@@ -59,14 +76,7 @@ class OrderController(
             .body(orderService.createOrder(orderDto.toEntity()))
     }
     
-    @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun updateOrder(
-        @PathVariable id: String,
-        @RequestBody newOrder: OrderDto
-    ): ResponseEntity<OrderDto> {
-        return ResponseEntity.ok(orderService.updateOrder(id, newOrder.toEntity()).toDto())
-    }
+
     
 //    @PutMapping("/{id}/confirm")
 //    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")

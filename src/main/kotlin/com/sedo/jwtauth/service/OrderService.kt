@@ -186,9 +186,28 @@ class OrderService(
         return "ORD-$timestamp-$random"
     }
     
-//    fun cancelOrder(orderId: String, reason: String): Order {
-//        return updateOrder(orderId, CANCELLED, reason)
-//    }
+    fun cancelOrder(orderId: String ): Order {
+        val currentUser = SecurityContextHolder.getContext().authentication.name
+        logger.info("Updating order {} status to {} by user: {}", orderId, CANCELLED, currentUser)
+
+        val existingOrder = getOrderById(orderId)
+        val oldStatus = existingOrder.status
+        val updatedOrder =  existingOrder.copy(status = CANCELLED)
+        val savedOrder = orderRepository.save(updatedOrder)
+
+        auditService.logAction(
+            userName = currentUser,
+            action = "STATUS_UPDATE",
+            entityType = "Order",
+            entityId = savedOrder.id,
+            description = "Updated order #${savedOrder.orderNumber} status: $oldStatus -> ${CANCELLED}",
+            oldData = mapOf("status" to oldStatus.name),
+            newData = mapOf("status" to CANCELLED.name, "notes" to  "Cancelled by user $currentUser")
+        )
+
+        logger.info("Order status updated successfully: #{} -> {}", savedOrder.orderNumber, CANCELLED)
+        return savedOrder
+    }
     
     fun getOrderStats(): Map<String, Any> {
         val allOrders = orderRepository.findAll()
