@@ -33,7 +33,7 @@ class ProductController(private val productService: ProductService) {
     
     @GetMapping("/category/{categoryId}")
     fun getProductsByCategory(@PathVariable categoryId: String): ResponseEntity<List<ProductDto>> {
-        return ResponseEntity.ok(productService.findBycategoryId(categoryId).map { it.toDto() })
+        return ResponseEntity.ok(productService.findByCategoryId(categoryId).map { it.toDto() })
     }
     
     @GetMapping("/supplier/{supplierId}")

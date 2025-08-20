@@ -34,4 +34,27 @@ class CatalogService(
             )
         }
     }
+
+
+    fun getProductWithCategoryById(productId: String): ProductWithCategoryDto {
+        val product = productService.getProductById(productId)
+        val categoryId = product.categoryId
+        val category = categoryService.getCategoryById(categoryId)
+        return ProductWithCategoryDto(
+                id = product.id!!,
+                name = product.name,
+                description = product.description,
+                sku = product.sku,
+                category = category,
+                supplierId = product.supplierId,
+                sellingPrice = product.sellingPrice,
+                stockQuantity = product.stockQuantity,
+                isOnPromotion = product.isOnPromotion,
+                promotionPrice = product.promotionPrice,
+                promotionEndDate = product.promotionEndDate?.let { ofInstant(product.promotionEndDate, systemDefault()) },
+                unit = product.unit,
+                expirationDate = product.expirationDate,
+                imageUrls = product.images,
+            )
+        }
 }

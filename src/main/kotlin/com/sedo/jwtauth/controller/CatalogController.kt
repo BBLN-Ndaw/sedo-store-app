@@ -4,14 +4,20 @@ import com.sedo.jwtauth.model.dto.ProductWithCategoryDto
 import com.sedo.jwtauth.service.CatalogService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/catalog")
+@RequestMapping("/api/products/catalog")
 class CatalogController (private val catalogservice: CatalogService) {
     @GetMapping
     fun getProductWithCategories(): ResponseEntity<List<ProductWithCategoryDto>> {
         return ResponseEntity.ok(catalogservice.getProductsWithCategories())
+    }
+
+    @GetMapping("/{id}")
+    fun getProductWithCategoryById(@PathVariable id: String): ResponseEntity<ProductWithCategoryDto> {
+        return ResponseEntity.ok(catalogservice.getProductWithCategoryById(id))
     }
 }

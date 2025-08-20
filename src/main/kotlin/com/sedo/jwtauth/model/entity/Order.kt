@@ -27,7 +27,7 @@ data class Order(
     val estimatedDeliveryDate: Instant? = null,
     val notes: String? = null,
     val items: List<OrderItem>,
-    val pickupDate: Instant? = null, // Date de retrait effective
+    val pickupDate: Instant? = null, // Date de retrait/livraison effective
     val processedByUser: String? = null, // nom de la personne qui traite la commande
     val paymentMethod: PaymentMethod = PaymentMethod.CASH_ON_DELIVERY,
     val paymentStatus: PaymentStatus = PaymentStatus.PENDING,

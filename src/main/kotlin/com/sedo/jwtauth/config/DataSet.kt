@@ -161,8 +161,8 @@ val mockOrders = listOf(
         estimatedDeliveryDate = Instant.parse("2025-08-25T10:00:00Z"),
         notes = "Livrer avant midi",
         items = listOf(
-        OrderItem("P001", "iPhone 14 Pro", 1, BigDecimal("1199.00"), BigDecimal("1199.00")),
-        OrderItem("P002", "AirPods Pro", 2, BigDecimal("279.00"), BigDecimal("558.00"))
+            OrderItem(smartPhoneProdtucId, "Smartphone Premium X1", 1, BigDecimal("899.99"), BigDecimal("899.99")),
+            OrderItem(casqueProdtucId, "Casque Audio Bluetooth", 2, BigDecimal("249.99"), BigDecimal("499.98"))
         ),
         paymentMethod = PaymentMethod.CREDIT_CARD,
         paymentStatus = PaymentStatus.PENDING,
@@ -173,16 +173,16 @@ val mockOrders = listOf(
         orderNumber = "CMD-20250819-0002",
         customerName = "customer",
         status = OrderStatus.CONFIRMED,
-        subtotal = BigDecimal("499.00"),
+        subtotal = BigDecimal("1299.99"),
         shippingAmount = BigDecimal("0.00"),
-        taxAmount = BigDecimal("99.00"),
-        totalAmount = BigDecimal("598.00"),
+        taxAmount = BigDecimal("260.00"),
+        totalAmount = BigDecimal("1559.99"),
         shippingAddress = Address("22 boulevard Saint-Michel", "Paris", "75005", "FR"),
         billingAddress = null,
         estimatedDeliveryDate = Instant.parse("2025-08-22T14:00:00Z"),
         notes = "Cadeau, emballage soigné",
         items = listOf(
-            OrderItem("P003", "Samsung Galaxy Tab S8", 1, BigDecimal("499.00"), BigDecimal("499.00"))
+            OrderItem(ordinateurProdtucId, "Ordinateur Portable Gaming", 1, BigDecimal("1299.99"), BigDecimal("1299.99"))
         ),
         paymentMethod = PaymentMethod.PAYPAL,
         paymentStatus = PaymentStatus.COMPLETED,
@@ -193,16 +193,16 @@ val mockOrders = listOf(
         orderNumber = "CMD-20250819-0003",
         customerName = "customer",
         status = OrderStatus.PROCESSING,
-        subtotal = BigDecimal("89.90"),
+        subtotal = BigDecimal("329.99"),
         shippingAmount = BigDecimal("4.90"),
-        taxAmount = BigDecimal("18.00"),
-        totalAmount = BigDecimal("112.80"),
+        taxAmount = BigDecimal("66.00"),
+        totalAmount = BigDecimal("400.89"),
         shippingAddress = Address("5 avenue Habib Bourguiba", "Tunis", "1000", "TN"),
         billingAddress = Address("5 avenue Habib Bourguiba", "Tunis", "1000", "TN"),
         estimatedDeliveryDate = Instant.parse("2025-08-28T16:30:00Z"),
         notes = null,
         items = listOf(
-            OrderItem("P004", "Clavier mécanique Logitech", 1, BigDecimal("89.90"), BigDecimal("89.90"))
+            OrderItem(montreProdtucId, "Montre Connectée Sport", 1, BigDecimal("329.99"), BigDecimal("329.99"))
         ),
         paymentMethod = PaymentMethod.BANK_TRANSFER,
         paymentStatus = PaymentStatus.PENDING,
@@ -213,16 +213,16 @@ val mockOrders = listOf(
         orderNumber = "CMD-20250819-0004",
         customerName = "customer",
         status = OrderStatus.SHIPPED,
-        subtotal = BigDecimal("249.99"),
+        subtotal = BigDecimal("449.99"),
         shippingAmount = BigDecimal("15.00"),
-        taxAmount = BigDecimal("50.00"),
-        totalAmount = BigDecimal("314.99"),
+        taxAmount = BigDecimal("90.00"),
+        totalAmount = BigDecimal("554.99"),
         shippingAddress = Address("Via Roma 12", "Milan", "20100", "IT"),
         billingAddress = null,
         estimatedDeliveryDate = Instant.parse("2025-08-24T09:00:00Z"),
         notes = "Expédition express DHL",
         items = listOf(
-            OrderItem("P005", "Casque Bose QC45", 1, BigDecimal("249.99"), BigDecimal("249.99"))
+            OrderItem(tabletteProdtucId, "Tablette Graphique Pro", 1, BigDecimal("449.99"), BigDecimal("449.99"))
         ),
         paymentMethod = PaymentMethod.CASH_ON_DELIVERY,
         paymentStatus = PaymentStatus.PENDING,
@@ -233,18 +233,19 @@ val mockOrders = listOf(
         orderNumber = "CMD-20250819-0005",
         customerName = "customer",
         status = OrderStatus.DELIVERED,
-        subtotal = BigDecimal("59.99"),
+        subtotal = BigDecimal("199.99"),
         shippingAmount = BigDecimal("0.00"),
-        taxAmount = BigDecimal("12.00"),
-        totalAmount = BigDecimal("71.99"),
+        taxAmount = BigDecimal("40.00"),
+        totalAmount = BigDecimal("239.99"),
         shippingAddress = Address("221B Baker Street", "London", "NW16XE", "UK"),
         billingAddress = Address("221B Baker Street", "London", "NW16XE", "UK"),
         estimatedDeliveryDate = Instant.parse("2025-08-20T11:00:00Z"),
         notes = "Remis en main propre",
         items = listOf(
-            OrderItem("P006", "Amazon Echo Dot", 1, BigDecimal("59.99"), BigDecimal("59.99"))
+            OrderItem(cameraProdtucId, "Caméra Action 4K", 1, BigDecimal("199.99"), BigDecimal("199.99"))
         ),
         paymentMethod = PaymentMethod.CREDIT_CARD,
         paymentStatus = PaymentStatus.COMPLETED,
         processedByUser = "Emma Johnson",
-))
+    )
+)

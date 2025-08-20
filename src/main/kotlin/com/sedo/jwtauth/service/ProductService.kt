@@ -2,6 +2,7 @@ package com.sedo.jwtauth.service
 
 import Product
 import com.sedo.jwtauth.exception.ProductNotFoundException
+import com.sedo.jwtauth.model.dto.ProductWithCategoryDto
 import com.sedo.jwtauth.repository.ProductRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
@@ -29,7 +30,7 @@ class ProductService(
         return productRepository.findByIsOnPromotionTrueAndIsActiveTrue()
     }
 
-    fun findBycategoryId(categoryId: String): List<Product> {
+    fun findByCategoryId(categoryId: String): List<Product> {
         logger.debug("Retrieving products for categoryId ID: {}", categoryId)
         return productRepository.findByCategoryIdAndIsActiveTrue(categoryId)
     }
