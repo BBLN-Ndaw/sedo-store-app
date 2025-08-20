@@ -1,10 +1,9 @@
 package com.sedo.jwtauth.config
 
-import Product
 import com.sedo.jwtauth.model.dto.Address
-import com.sedo.jwtauth.model.entity.Category
 import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.CategoryRepository
+import com.sedo.jwtauth.repository.OrderRepository
 import com.sedo.jwtauth.repository.ProductRepository
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -12,13 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.CommandLineRunner
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 @Component
 class DataInitializer @Autowired constructor(
     private val userRepository: UserRepository,
     private val categoryRepository: CategoryRepository,
     private val productRepository: ProductRepository,
+    private val orderRepository: OrderRepository,
     private val passwordEncoder: BCryptPasswordEncoder
 ) : CommandLineRunner {
     
@@ -30,6 +29,7 @@ class DataInitializer @Autowired constructor(
         initializeUsers()
         initializeCategories()
         initializeProducts()
+        initializeOrders()
         
         logger.info("Data initialization completed")
     }
@@ -102,6 +102,18 @@ class DataInitializer @Autowired constructor(
                 logger.info("Default product '{}' created", product.name)
             } else {
                 logger.info("Product '{}' already exists", product.name)
+            }
+
+        }
+    }
+
+    fun initializeOrders() {
+        mockOrders.forEach { order ->
+            if (orderRepository.findById(order.id!!).isEmpty) {
+                orderRepository.save(order)
+                logger.info("Default order '{}' created", order.orderNumber)
+            } else {
+                logger.info("Order '{}' already exists", order.orderNumber)
             }
 
         }

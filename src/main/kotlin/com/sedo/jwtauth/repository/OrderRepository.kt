@@ -2,11 +2,13 @@ package com.sedo.jwtauth.repository
 
 import com.sedo.jwtauth.model.entity.Order
 import com.sedo.jwtauth.model.entity.OrderStatus
+import com.sedo.jwtauth.model.entity.PaymentMethod
 import org.springframework.data.mongodb.repository.MongoRepository
-import java.time.Instant
 
 interface OrderRepository : MongoRepository<Order, String> {
-    fun findByCustomerIdOrderByCreatedAtDesc(customerId: String): List<Order>
+    fun findByCustomerNameOrderByCreatedAtDesc(customerId: String): List<Order>
     fun findByStatusOrderByCreatedAtDesc(status: OrderStatus): List<Order>
     fun findAllByOrderByCreatedAtDesc(): List<Order>
+    fun findByProcessedByUserOrderByUpdatedAtDesc(processedByUser: String): List<Order>
+    fun findByPaymentMethodOrderByCreatedAtDesc(paymentMethod: PaymentMethod): List<Order>
 }

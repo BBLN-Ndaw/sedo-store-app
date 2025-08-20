@@ -128,36 +128,36 @@ class DashboardController(
         ))
     }
     
-    @GetMapping("/orders-summary")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getOrdersSummary(): ResponseEntity<Map<String, Any>> {
-        val stats = orderService.getOrderStats()
-        val pending = orderService.getPendingOrders()
-        val readyForPickup = orderService.getReadyForPickupOrders()
-        
-        return ResponseEntity.ok(mapOf(
-            "stats" to stats,
-            "pending" to pending.map { 
-                mapOf(
-                    "id" to it.id,
-                    "orderNumber" to it.orderNumber,
-                    "customerName" to it.customerName,
-                    "totalAmount" to it.totalAmount,
-                    "orderDate" to it.createdAt
-                )
-            },
-            "readyForPickup" to readyForPickup.map {
-                mapOf(
-                    "id" to it.id,
-                    "orderNumber" to it.orderNumber,
-                    "customerName" to it.customerName,
-                    "totalAmount" to it.totalAmount,
-                    "readyAt" to it.readyAt
-                )
-            }
-        ))
-    }
-    
+//    @GetMapping("/orders-summary")
+//    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+//    fun getOrdersSummary(): ResponseEntity<Map<String, Any>> {
+//        val stats = orderService.getOrderStats()
+//        val pending = orderService.getPendingOrders()
+//        val readyForPickup = orderService.getReadyForPickupOrders()
+//
+//        return ResponseEntity.ok(mapOf(
+//            "stats" to stats,
+//            "pending" to pending.map {
+//                mapOf(
+//                    "id" to it.id,
+//                    "orderNumber" to it.orderNumber,
+//                    "customerName" to it.customerName,
+//                    "totalAmount" to it.totalAmount,
+//                    "orderDate" to it.createdAt
+//                )
+//            },
+//            "readyForPickup" to readyForPickup.map {
+//                mapOf(
+//                    "id" to it.id,
+//                    "orderNumber" to it.orderNumber,
+//                    "customerName" to it.customerName,
+//                    "totalAmount" to it.totalAmount,
+//                    "readyAt" to it.readyAt
+//                )
+//            }
+//        ))
+//    }
+//
     @GetMapping("/inventory-alerts")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getInventoryAlerts(): ResponseEntity<Map<String, Any>> {

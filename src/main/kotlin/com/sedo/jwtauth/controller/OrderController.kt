@@ -1,5 +1,7 @@
 package com.sedo.jwtauth.controller
 
+import com.sedo.jwtauth.mapper.toDto
+import com.sedo.jwtauth.mapper.toEntity
 import com.sedo.jwtauth.model.dto.OrderDto
 import com.sedo.jwtauth.model.entity.Order
 import com.sedo.jwtauth.model.entity.OrderStatus
@@ -18,14 +20,14 @@ class OrderController(
     
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getAllOrders(): ResponseEntity<List<Order>> {
-        return ResponseEntity.ok(orderService.getAllOrders())
+    fun getAllOrders(): ResponseEntity<List<OrderDto>> {
+        return ResponseEntity.ok(orderService.getAllOrders().map { it.toDto() })
     }
     
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
-    fun getOrderById(@PathVariable id: String): ResponseEntity<Order> {
-        return ResponseEntity.ok(orderService.getOrderById(id))
+    fun getOrderById(@PathVariable id: String): ResponseEntity<OrderDto> {
+        return ResponseEntity.ok(orderService.getOrderById(id).toDto())
     }
     
     @GetMapping("/status/{status}")
@@ -34,76 +36,71 @@ class OrderController(
         return ResponseEntity.ok(orderService.getOrdersByStatus(status))
     }
     
-    @GetMapping("/customer/{customerId}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getOrdersByCustomer(@PathVariable customerId: String): ResponseEntity<List<Order>> {
-        return ResponseEntity.ok(orderService.getOrdersByCustomer(customerId))
+    @GetMapping("/customer")
+    fun getOrdersByCustomer(): ResponseEntity<List<OrderDto>> {
+        return ResponseEntity.ok(orderService.getOrdersByCustomerName().map { it.toDto() })
     }
     
     @GetMapping("/pending")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getPendingOrders(): ResponseEntity<List<Order>> {
-        return ResponseEntity.ok(orderService.getPendingOrders())
+    fun getPendingOrders(): ResponseEntity<List<OrderDto>> {
+        return ResponseEntity.ok(orderService.getPendingOrders().map { it.toDto() })
     }
     
     @GetMapping("/ready-for-pickup")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getReadyForPickupOrders(): ResponseEntity<List<Order>> {
-        return ResponseEntity.ok(orderService.getReadyForPickupOrders())
+    fun getReadyForPickupOrders(): ResponseEntity<List<OrderDto>> {
+        return ResponseEntity.ok(orderService.getReadyForPickupOrders().map { it.toDto() })
     }
     
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun createOrder(@Valid @RequestBody orderDto: OrderDto): ResponseEntity<Order> {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(orderService.createOrder(orderDto))
+            .body(orderService.createOrder(orderDto.toEntity()))
     }
     
     @PutMapping("/{id}/status")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun updateOrderStatus(
+    fun updateOrder(
         @PathVariable id: String,
-        @RequestBody statusUpdate: Map<String, String>
-    ): ResponseEntity<Order> {
-        val newStatus = OrderStatus.valueOf(statusUpdate["status"] ?: throw IllegalArgumentException("Status is required"))
-        val notes = statusUpdate["notes"]
-        
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, newStatus, notes))
+        @RequestBody newOrder: OrderDto
+    ): ResponseEntity<OrderDto> {
+        return ResponseEntity.ok(orderService.updateOrder(id, newOrder.toEntity()).toDto())
     }
     
-    @PutMapping("/{id}/confirm")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun confirmOrder(@PathVariable id: String): ResponseEntity<Order> {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.CONFIRMED))
-    }
+//    @PutMapping("/{id}/confirm")
+//    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+//    fun confirmOrder(@PathVariable id: String): ResponseEntity<Order> {
+//        return ResponseEntity.ok(orderService.updateOrder(id, OrderStatus.CONFIRMED))
+//    }
     
-    @PutMapping("/{id}/prepare")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun prepareOrder(@PathVariable id: String): ResponseEntity<Order> {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.PREPARING))
-    }
+//    @PutMapping("/{id}/prepare")
+//    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+//    fun prepareOrder(@PathVariable id: String): ResponseEntity<Order> {
+//        return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.PREPARING))
+//    }
     
-    @PutMapping("/{id}/ready")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun markOrderReady(@PathVariable id: String): ResponseEntity<Order> {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.READY_FOR_PICKUP))
-    }
+//    @PutMapping("/{id}/ready")
+//    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+//    fun markOrderReady(@PathVariable id: String): ResponseEntity<Order> {
+//        return ResponseEntity.ok(orderService.updateOrder(id, OrderStatus.READY_FOR_PICKUP))
+//    }
     
-    @PutMapping("/{id}/complete")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun completeOrder(@PathVariable id: String): ResponseEntity<Order> {
-        return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.COMPLETED))
-    }
+//    @PutMapping("/{id}/complete")
+//    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+//    fun completeOrder(@PathVariable id: String): ResponseEntity<Order> {
+//        return ResponseEntity.ok(orderService.updateOrderStatus(id, OrderStatus.COMPLETED))
+//    }
     
-    @PutMapping("/{id}/cancel")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun cancelOrder(
-        @PathVariable id: String,
-        @RequestBody cancelRequest: Map<String, String>
-    ): ResponseEntity<Order> {
-        val reason = cancelRequest["reason"] ?: "Cancelled by staff"
-        return ResponseEntity.ok(orderService.cancelOrder(id, reason))
-    }
+//    @PutMapping("/{id}/cancel")
+//    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+//    fun cancelOrder(
+//        @PathVariable id: String,
+//        @RequestBody cancelRequest: Map<String, String>
+//    ): ResponseEntity<Order> {
+//        val reason = cancelRequest["reason"] ?: "Cancelled by staff"
+//        return ResponseEntity.ok(orderService.cancelOrder(id, reason))
+//    }
     
     @GetMapping("/stats")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")

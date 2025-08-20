@@ -35,7 +35,7 @@ class AuditService(
                 newData = newData,
                 ipAddress = ipAddress,
                 userAgent = userAgent,
-                timestamp = Instant.now()
+                createdAt = Instant.now()
             )
             
             auditLogRepository.save(auditLog)
@@ -55,7 +55,7 @@ class AuditService(
         return when {
             userId != null -> auditLogRepository.findByUserName(userId)
             entityType != null && entityId != null -> auditLogRepository.findByEntityTypeAndEntityId(entityType, entityId)
-            startDate != null && endDate != null -> auditLogRepository.findByTimestampBetween(startDate, endDate)
+            startDate != null && endDate != null -> auditLogRepository.findByCreatedAtBetween(startDate, endDate)
             else -> auditLogRepository.findAll()
         }
     }
