@@ -23,7 +23,7 @@ class RefreshTokenFailedException(message: String = "Refresh token failed") : Ru
 
 class ResourceNotFoundException(message: String) : RuntimeException(message)
 
-class InsufficientStockException(message: String) : RuntimeException(message)
+class UnAvailableProductException(message: String) : RuntimeException(message)
 
 class InvalidOperationException(message: String) : RuntimeException(message)
 

@@ -1,5 +1,6 @@
 package com.sedo.jwtauth.model.entity
 
+import com.sedo.jwtauth.constants.Constants.Order.TAX
 import com.sedo.jwtauth.model.dto.Address
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
@@ -16,16 +17,19 @@ data class Order(
     val id: String? = null,
     @field:Indexed(unique = true)
     val orderNumber: String,
-    val customerName: String,
+    val customerUserName: String,
+    val customerEmail: String? = null,
     val status: OrderStatus,
     val totalAmount: BigDecimal,
     val subtotal: BigDecimal,
     val shippingAmount: BigDecimal, // Montant des frais de livraison
     val taxAmount: BigDecimal = BigDecimal.ZERO,
-    val shippingAddress: Address,
+    val shippingAddress: Address? = null,
     val billingAddress: Address? = null,
     val estimatedDeliveryDate: Instant? = null,
     val notes: String? = null,
+    @field:Indexed(unique = true)
+    val paymentOrderId: String? = null, // ID de la transaction de paiement associée
     val items: List<OrderItem>,
     val pickupDate: Instant? = null, // Date de retrait/livraison effective
     val processedByUser: String? = null, // nom de la personne qui traite la commande
@@ -43,12 +47,13 @@ data class OrderItem(
     val productId: String,
     val productName: String,
     val quantity: Int,
-    val unitPrice: BigDecimal,
-    val totalPrice: BigDecimal
+    val image: String? = null,
+    val productUnitPrice: BigDecimal,
+    val productTaxRate: BigDecimal = TAX,
 )
 
 enum class OrderStatus {
-    PENDING, //Commande créée mais pas encore payée (validaation panier
+    PENDING, //Commande créée mais pas encore payée (validaation panier)
     CONFIRMED, // paiement validé, commande à traité par le vendeur
     PROCESSING, //Le commerçant prépare la commande
     READY_FOR_PICKUP, //Dans le cas d’un Click & Collect

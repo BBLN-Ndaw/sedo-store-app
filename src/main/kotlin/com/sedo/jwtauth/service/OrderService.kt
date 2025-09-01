@@ -1,19 +1,35 @@
 package com.sedo.jwtauth.service
 
+import Product
+import com.sedo.jwtauth.constants.Constants.Order.FREE_SHIPPING_AMOUNT
+import com.sedo.jwtauth.exception.UnAvailableProductException
 import com.sedo.jwtauth.exception.ResourceNotFoundException
+import com.sedo.jwtauth.mapper.toOrderItem
+import com.sedo.jwtauth.model.dto.Address
+import com.sedo.jwtauth.model.dto.CartDto
+import com.sedo.jwtauth.model.dto.PaypalCapturedResponse
 import com.sedo.jwtauth.model.entity.Order
 import com.sedo.jwtauth.model.entity.OrderStatus
 import com.sedo.jwtauth.model.entity.OrderStatus.*
+import com.sedo.jwtauth.model.entity.PaymentMethod
+import com.sedo.jwtauth.model.entity.PaymentStatus
 import com.sedo.jwtauth.repository.OrderRepository
+import com.sedo.jwtauth.repository.ProductRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.Duration
+import java.time.Instant
+import java.util.UUID
 
 @Service
 class OrderService(
     private val orderRepository: OrderRepository,
-    private val auditService: AuditService
+    private val productRepository: ProductRepository,
+    private val auditService: AuditService,
+    private val payPalService: PayPalService
 ) {
     
     private val logger = LoggerFactory.getLogger(OrderService::class.java)
@@ -28,85 +44,45 @@ class OrderService(
         return orderRepository.findById(id).orElse(null)
             ?: throw ResourceNotFoundException("Order not found with ID: $id")
     }
-    
-    fun getOrdersByStatus(status: OrderStatus): List<Order> {
-        logger.debug("Retrieving orders with status: {}", status)
-        return orderRepository.findByStatusOrderByCreatedAtDesc(status)
-    }
-    
-    fun getOrdersByCustomerName(): List<Order> {
-        val customerName = SecurityContextHolder.getContext().authentication.name
-        logger.debug("Retrieving orders for customer: {}", customerName)
-        return orderRepository.findByCustomerNameOrderByCreatedAtDesc(customerName)
-    }
-    
-    fun getPendingOrders(): List<Order> {
-        return getOrdersByStatus(OrderStatus.PENDING)
-    }
-    
-    fun getReadyForPickupOrders(): List<Order> {
-        return getOrdersByStatus(READY_FOR_PICKUP)
-    }
-    
-    fun createOrder(order: Order): Order {
+
+    fun createOrder(cart: CartDto): Order {
         val currentUser = SecurityContextHolder.getContext().authentication.name
-        logger.info("Creating order with {} items for customer: {}", order.items.size, order.customerName)
-        
-        // Vérifier le stock pour tous les articles
-//        val orderItems = mutableListOf<OrderItem>()
-//        var subtotal = BigDecimal.ZERO
-//
-//        for (itemDto in order.items) {
-//            val product = productService.getProductById(itemDto.productId)
-//
-//            // Vérifier le stock disponible
-//            if (product.stockQuantity < itemDto.quantity) {
-//                throw InsufficientStockException(
-//                    "Insufficient stock for product ${product.name}. Available: ${product.stockQuantity}, Requested: ${itemDto.quantity}"
-//                )
-//            }
-//
-//            val unitPrice = product.sellingPrice
-//            val itemTotal = unitPrice.multiply(BigDecimal(itemDto.quantity))
-//
-//            val orderItem = OrderItem(
-//                productId = itemDto.productId,
-//                productName = product.name,
-//                quantity = itemDto.quantity,
-//                unitPrice = unitPrice,
-//                totalPrice = itemTotal
-//            )
-//
-//            orderItems.add(orderItem)
-//            subtotal = subtotal.add(itemTotal)
-//        }
-//
-//        // Calculer les taxes
-//        val taxAmount = subtotal.multiply(BigDecimal("0.20")) // 20% TVA
-//        var totalAmount = subtotal.add(taxAmount)
-//        val shippingAmount = if(totalAmount> BigDecimal("50.00")) BigDecimal.ZERO else BigDecimal("5.00") // Livraison gratuite au-dessus de 50€
-//        totalAmount = totalAmount.add(shippingAmount)
-//        // Créer la commande
-//        val order = Order(
-//            orderNumber = generateOrderNumber(),
-//            customerName = order.customerName,
-//            items = orderItems,
-//            subtotal = subtotal,
-//            taxAmount = taxAmount,
-//            totalAmount = totalAmount,
-//            paymentMethod = order.paymentMethod,
-//            paymentStatus = order.paymentStatus,
-//            notes = order.notes,
-//            pickupDate = order.pickupDate,
-//            status = OrderStatus.PENDING,
-//            shippingAmount = shippingAmount,
-//            shippingAddress = order.shippingAddress,
-//            billingAddress = order.billingAddress,
-//            processedByUser = null,
-//        )
-        
-        val savedOrder = orderRepository.save(order)
-        
+        logger.debug("Creating order with {} items for customer: {}", cart.items.size, currentUser)
+        checkStockAvailability(cart)
+        val validatedCart = validateCartItemsPricesWithBase(cart)
+
+        val orderSubtotal = validatedCart.items.sumOf { BigDecimal(it.quantity) * it.productUnitPriceHT }
+        val orderTotalTva = validatedCart.items.sumOf { item ->
+            val ligneHT = item.productUnitPriceHT.multiply(BigDecimal(item.quantity))
+            ligneHT.multiply(item.productTaxRate)
+        }
+
+        val totalBeforeShippingAmount = orderSubtotal.add(orderTotalTva)
+        val shippingAmount = shippingAmount(totalBeforeShippingAmount)
+        val totalTTCOrder = orderSubtotal.add(orderTotalTva).add(shippingAmount).setScale(2, RoundingMode.DOWN)
+
+        val order = Order(
+            orderNumber = generateUniqueOrderNumber(),
+            customerUserName = currentUser,
+            status = PENDING,
+            totalAmount = totalTTCOrder,
+            subtotal = orderSubtotal,
+            shippingAmount = shippingAmount,
+            taxAmount = orderTotalTva,
+            estimatedDeliveryDate = Instant.now().plus(Duration.ofDays(5)), // Livraison estimée à 5 jours
+            notes = "Create new order from cart with ${cart.items.size} items",
+            items = validatedCart.items.map {
+                it.toOrderItem()
+            },
+            processedByUser = currentUser,
+            paymentMethod = PaymentMethod.PAYPAL,
+            paymentStatus = PaymentStatus.PENDING,
+        )
+
+        // Create PayPal order
+         val paymentOrderId =  payPalService.createOrder(totalTTCOrder.toString(), order.orderNumber)
+
+        val savedOrder = orderRepository.save(order.copy(paymentOrderId = paymentOrderId))
         auditService.logAction(
             userName = currentUser,
             action = "CREATE",
@@ -117,52 +93,79 @@ class OrderService(
                 "orderNumber" to savedOrder.orderNumber,
                 "totalAmount" to savedOrder.totalAmount.toString(),
                 "itemCount" to savedOrder.items.size.toString(),
-                "customerName" to savedOrder.customerName,
-                "status" to savedOrder.status.name
+                "customerUserName" to savedOrder.customerUserName,
+                "status" to savedOrder.status.name,
+                "paymentOrderId" to savedOrder.paymentOrderId.toString()
             )
         )
-        
+
         logger.info("Order created successfully: #{} for {}€", savedOrder.orderNumber, savedOrder.totalAmount)
         return savedOrder
     }
 
-    fun updateOrder(orderId: String, newOrder: Order): Order {
+    fun captureOrder(orderId: String): PaypalCapturedResponse {
+        logger.debug("Capturing PayPal order with ID: {}", orderId)
+        val captureResponse = payPalService.captureOrder(orderId)
+        logger.info("PayPal order captured successfully: {}", captureResponse)
+        val order = orderRepository.findByPaymentOrderId(orderId).firstOrNull() ?: throw ResourceNotFoundException("Order not found with ID: $orderId")
+        val updatedOrder = order.copy(
+            customerEmail = captureResponse.payer.email_address,
+            status = CONFIRMED,
+            shippingAddress = Address(
+                street = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.address_line_1 ?: "N/A",
+                city = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.admin_area_2 ?: "N/A",
+                postalCode = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.postal_code ?: "N/A",
+                country = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.country_code ?: "N/A",
+            ),
+            billingAddress = Address(
+                street = captureResponse.payer.address.address_line_1 ?: "N/A",
+                city = captureResponse.payer.address.admin_area_2 ?: "N/A",
+                postalCode = captureResponse.payer.address.postal_code ?: "N/A",
+                country = captureResponse.payer.address.country_code
+            ),
+            paymentStatus = PaymentStatus.COMPLETED)
+
+        orderRepository.save(updatedOrder)
+
+        auditService.logAction(
+            userName = "SYSTEM",
+            action = "PAYMENT_CAPTURED",
+            entityType = "Order",
+            entityId = updatedOrder.id,
+            description = "Captured PayPal payment for order #${updatedOrder.orderNumber}",
+            oldData = mapOf("status" to PENDING.name, "paymentStatus" to PaymentStatus.PENDING.name),
+            newData = mapOf("status" to CONFIRMED.name, "paymentStatus" to PaymentStatus.COMPLETED.name)
+        )
+        return captureResponse
+
+    }
+    
+    fun getOrdersByStatus(status: OrderStatus): List<Order> {
+        logger.debug("Retrieving orders with status: {}", status)
+        return orderRepository.findByStatusOrderByCreatedAtDesc(status)
+    }
+    
+    fun getOrdersByCustomerUserName(): List<Order> {
+        val customerName = SecurityContextHolder.getContext().authentication.name
+        logger.debug("Retrieving orders for customer: {}", customerName)
+        return orderRepository.findByCustomerUserNameOrderByCreatedAtDesc(customerName)
+    }
+    
+    fun getPendingOrders(): List<Order> {
+        return getOrdersByStatus(PENDING)
+    }
+    
+    fun getReadyForPickupOrders(): List<Order> {
+        return getOrdersByStatus(READY_FOR_PICKUP)
+    }
+
+    fun updateOrderStatus(orderId: String, newOrderStatus: OrderStatus): Order {
         val currentUser = SecurityContextHolder.getContext().authentication.name
-        logger.info("Updating order {} status to {} by user: {}", orderId, newOrder.status, currentUser)
+        logger.info("Updating order {} status to {} by user: {}", orderId, newOrderStatus.name, currentUser)
         
         val existingOrder = getOrderById(orderId)
         val oldStatus = existingOrder.status
-        val updatedOrder =  existingOrder.copy(
-            orderNumber = newOrder.orderNumber,
-            customerName = newOrder.customerName,
-            items = newOrder.items,
-            subtotal = newOrder.subtotal,
-            taxAmount = newOrder.taxAmount,
-            totalAmount = newOrder.totalAmount,
-            paymentMethod = newOrder.paymentMethod,
-            paymentStatus = newOrder.paymentStatus,
-            notes = newOrder.notes,
-            pickupDate = newOrder.pickupDate,
-            status = newOrder.status,
-            shippingAmount = newOrder.shippingAmount,
-            shippingAddress = newOrder.shippingAddress,
-            billingAddress = newOrder.billingAddress,
-            processedByUser = currentUser,
-            estimatedDeliveryDate = newOrder.estimatedDeliveryDate,
-
-        )
-//        val updatedOrder = when (newStatus) {
-//            CONFIRMED, PROCESSING, READY_FOR_PICKUP, SHIPPED, DELIVERED, CANCELLED -> existingOrder.copy(
-//                status = newStatus,
-//                notes = notes ?: existingOrder.notes,
-//                processedByUser = currentUser
-//            )
-//            PENDING -> existingOrder.copy(
-//                status = newStatus,
-//                notes = notes ?: existingOrder.notes,
-//                processedByUser = "SYSTEM"
-//            )
-//        }
+        val updatedOrder =  existingOrder.copy(status = newOrderStatus)
         
         val savedOrder = orderRepository.save(updatedOrder)
         
@@ -171,24 +174,18 @@ class OrderService(
             action = "STATUS_UPDATE",
             entityType = "Order",
             entityId = savedOrder.id,
-            description = "Updated order #${savedOrder.orderNumber} status: $oldStatus -> ${newOrder.status}",
+            description = "Updated order #${savedOrder.orderNumber} status: $oldStatus -> ${newOrderStatus.name}",
             oldData = mapOf("status" to oldStatus.name),
-            newData = mapOf("status" to newOrder.status.name, "notes" to (newOrder.notes ?: "")),
+            newData = mapOf("status" to newOrderStatus.name)
         )
         
-        logger.info("Order status updated successfully: #{} -> {}", savedOrder.orderNumber, newOrder.status)
+        logger.info("Order status updated successfully: #{} -> {}", savedOrder.orderNumber, newOrderStatus.name)
         return savedOrder
-    }
-    
-    private fun generateOrderNumber(): String {
-        val timestamp = System.currentTimeMillis()
-        val random = (1000..9999).random()
-        return "ORD-$timestamp-$random"
     }
     
     fun cancelOrder(orderId: String ): Order {
         val currentUser = SecurityContextHolder.getContext().authentication.name
-        logger.info("Updating order {} status to {} by user: {}", orderId, CANCELLED, currentUser)
+        logger.info("Cancelling order {} status to {} by user: {}", orderId, CANCELLED, currentUser)
 
         val existingOrder = getOrderById(orderId)
         val oldStatus = existingOrder.status
@@ -205,14 +202,14 @@ class OrderService(
             newData = mapOf("status" to CANCELLED.name, "notes" to  "Cancelled by user $currentUser")
         )
 
-        logger.info("Order status updated successfully: #{} -> {}", savedOrder.orderNumber, CANCELLED)
+        logger.info("Order status cancelled successfully: #{} -> {}", savedOrder.orderNumber, CANCELLED)
         return savedOrder
     }
     
     fun getOrderStats(): Map<String, Any> {
-        val allOrders = orderRepository.findAll()
+        val allOrders = orderRepository.findAll().toList()
         
-        val statusCounts = OrderStatus.values().associateWith { status ->
+        val statusCounts = OrderStatus.entries.associateWith { status ->
             allOrders.count { it.status == status }
         }
         
@@ -229,8 +226,62 @@ class OrderService(
             "totalRevenue" to totalRevenue,
             "averageOrderValue" to averageOrderValue,
             "statusBreakdown" to statusCounts,
-            "pendingOrders" to (statusCounts[OrderStatus.PENDING] ?: 0),
+            "pendingOrders" to (statusCounts[PENDING] ?: 0),
             "readyForPickup" to (statusCounts[READY_FOR_PICKUP] ?: 0)
         )
+    }
+
+    private fun checkStockAvailability(cart: CartDto) {
+        val productIds = cart.items.map { it.productId }
+        val products = productRepository.findAllById(productIds).toList()
+        cart.items.forEach { item ->
+            val product = products.find { it.id == item.productId }
+                ?: throw UnAvailableProductException("Produit ${item.productId} introuvable")
+
+            if (product.stockQuantity < item.quantity) {
+                throw UnAvailableProductException("Produit ${product.name} en rupture de stock")
+            }
+        }
+    }
+
+    private fun shippingAmount(cartTotalAmount: BigDecimal): BigDecimal {
+        return if (cartTotalAmount >= FREE_SHIPPING_AMOUNT) BigDecimal.ZERO else BigDecimal.TEN
+    }
+
+    fun validateCartItemsPricesWithBase(cart: CartDto): CartDto {
+        val productIds = cart.items.map { it.productId }
+        val products = productRepository.findAllById(productIds).associateBy { it.id }
+
+        // Vérification de cohérence des prix et taux de TVA
+        cart.items.forEach { item ->
+            val product = products[item.productId]
+                ?: throw UnAvailableProductException("Produit ${item.productId} introuvable")
+            val unitPrice = product.sellingPrice
+            val productTaxRate = product.taxRate
+            if (isValidPromotion(product)) {
+                if (item.productUnitPriceHT.compareTo(product.promotionPrice) != 0) {
+                    throw IllegalArgumentException("Le prix envoyé pour le produit ${item.productId} ne correspond pas au prix promotionnel en base.")
+                }
+            } else {
+                if (item.productUnitPriceHT.compareTo(unitPrice) != 0) {
+                    throw IllegalArgumentException("Le prix envoyé pour le produit ${item.productId} ne correspond pas au prix en base.")
+                }
+            }
+            if (item.productTaxRate.compareTo(productTaxRate) != 0) {
+                throw IllegalArgumentException("Le taux de TVA envoyé pour le produit ${item.productId} ne correspond pas au taux en base.")
+            }
+        }
+        return cart
+    }
+    private fun generateUniqueOrderNumber(): String {
+        return "ORD-${UUID.randomUUID()}"
+    }
+
+    fun isValidPromotion(product: Product): Boolean {
+        return product.isOnPromotion &&
+                product.promotionPrice != null &&
+                product.promotionPrice > BigDecimal.ZERO &&
+                product.promotionPrice < product.sellingPrice &&
+                (product.promotionEndDate == null || product.promotionEndDate > Instant.now())
     }
 }

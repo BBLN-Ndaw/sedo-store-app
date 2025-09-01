@@ -14,10 +14,11 @@ data class OrderDto(
     val id: String? = null,
 
     @field:NotBlank(message = "Order number cannot be blank")
-    val orderNumber: String,
+    val orderNumber: String? = null,
 
-    @field:NotBlank(message = "Customer name is required")
-    val customerName: String,
+    val customerName: String? = null,
+
+    val customerEmail: String? = null,
 
     @field:NotNull(message = "Order status is required")
     val status: OrderStatus,
@@ -35,7 +36,7 @@ data class OrderDto(
     val taxAmount: BigDecimal = BigDecimal.ZERO,
 
     @field:NotNull(message = "Shipping address is required")
-    val shippingAddress: Address,
+    val shippingAddress: Address? = null,
 
     val billingAddress: Address? = null,
 
@@ -58,6 +59,8 @@ data class OrderDto(
 
     @field:NotNull(message = "Payment status is required")
     val paymentStatus: PaymentStatus = PaymentStatus.PENDING,
+
+    val paymentOrderId: String? = null, // ID de la transaction de paiement associée
 
     val createdAt: Instant? = null
 )

@@ -157,15 +157,15 @@ class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse)
     }
 
-    @ExceptionHandler(InsufficientStockException::class)
+    @ExceptionHandler(UnAvailableProductException::class)
     fun handleInsufficientStockException(
-        ex: InsufficientStockException,
+        ex: UnAvailableProductException,
         request: HttpServletRequest
     ): ResponseEntity<ErrorResponseDto> {
-        logger.warn("Insufficient stock: ${ex.message}")
+        logger.warn(ex.message)
         val errorResponse = ErrorResponseDto(
-            error = "Insufficient Stock",
-            message = ex.message ?: "Insufficient stock available",
+            error = "Produit Indisponible",
+            message = ex.message ?: "Stock insuffisant pour le produit demandé",
             status = HttpStatus.CONFLICT.value(),
             path = request.requestURI
         )
@@ -470,7 +470,7 @@ class ApiExceptionHandler {
         logger.error("Unhandled exception occurred", ex)
         val errorResponse = ErrorResponseDto(
             error = "Internal Server Error",
-            message = "An unexpected error occurred. Please try again later.",
+            message = "An unexpected error occurred : ${ex.message}",
             status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
             path = request.requestURI
         )
