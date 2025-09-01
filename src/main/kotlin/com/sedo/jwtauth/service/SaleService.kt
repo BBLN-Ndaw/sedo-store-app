@@ -1,6 +1,6 @@
 package com.sedo.jwtauth.service
 
-import com.sedo.jwtauth.exception.InsufficientStockException
+import com.sedo.jwtauth.exception.UnAvailableProductException
 import com.sedo.jwtauth.exception.ResourceNotFoundException
 import com.sedo.jwtauth.model.dto.SaleDto
 import com.sedo.jwtauth.model.entity.Sale
@@ -68,7 +68,7 @@ class SaleService(
             
             // Vérifier le stock disponible
             if (product.stockQuantity < itemDto.quantity) {
-                throw InsufficientStockException(
+                throw UnAvailableProductException(
                     "Insufficient stock for product ${product.name}. Available: ${product.stockQuantity}, Requested: ${itemDto.quantity}"
                 )
             }

@@ -1,5 +1,7 @@
 package com.sedo.jwtauth.constants
 
+import java.math.BigDecimal
+
 /**
  * Application constants
  */
@@ -34,5 +36,10 @@ object Constants {
     }
     object Product {
         const val MARGE= 0.3 // 30% default margin on purchase price
+    }
+
+    object Order {
+        val FREE_SHIPPING_AMOUNT = BigDecimal(50) // Free shipping for orders over 50
+        val TAX = BigDecimal(0.20) // 20% VAT
     }
 }

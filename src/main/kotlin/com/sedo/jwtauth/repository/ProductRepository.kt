@@ -9,6 +9,7 @@ import java.time.Instant
 interface ProductRepository : MongoRepository<Product, String> {
     fun findByIsActiveTrue(): List<Product>
     fun findByIsActiveFalse(): List<Product>
+    fun findAllByIdIn(ids: Collection<String>): List<Product>
     fun findByIsOnPromotionTrueAndIsActiveTrue(): List<Product>
     fun findByCategoryIdAndIsActiveTrue(categoryId: String): List<Product>
     fun findBySupplierIdAndIsActiveTrue(supplierId: String): List<Product>

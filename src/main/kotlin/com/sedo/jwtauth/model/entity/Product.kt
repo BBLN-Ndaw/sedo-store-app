@@ -15,7 +15,8 @@ data class Product(
     val sku: String,
     val categoryId: String,
     val supplierId: String,
-    val sellingPrice: BigDecimal,
+    val sellingPrice: BigDecimal,//prix HT
+    val taxRate: BigDecimal = BigDecimal("0.20"), //20% par défaut
     val purchasePrice: BigDecimal,
     val stockQuantity: Int,
     val minStock: Int,
@@ -24,7 +25,7 @@ data class Product(
     val images: List<String> = emptyList(),
     val isActive: Boolean = true,
     val isOnPromotion: Boolean = false,
-    val promotionPrice: BigDecimal? = null,
+    val promotionPrice: BigDecimal? = null, //prix promo HT
     val promotionEndDate: Instant? = null,
     @field:CreatedDate
     var createdAt: Instant? = null,

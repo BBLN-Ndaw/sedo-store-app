@@ -150,7 +150,7 @@ val mockOrders = listOf(
     Order(
         order1Id,
         orderNumber = "CMD-20250819-0001",
-        customerName = "customer",
+        customerUserName = "customer",
         status = OrderStatus.PENDING,
         subtotal = BigDecimal("1757.00"),
         shippingAmount = BigDecimal("5.90"),
@@ -161,8 +161,8 @@ val mockOrders = listOf(
         estimatedDeliveryDate = Instant.parse("2025-08-25T10:00:00Z"),
         notes = "Livrer avant midi",
         items = listOf(
-            OrderItem(smartPhoneProdtucId, "Smartphone Premium X1", 1, BigDecimal("899.99"), BigDecimal("899.99")),
-            OrderItem(casqueProdtucId, "Casque Audio Bluetooth", 2, BigDecimal("249.99"), BigDecimal("499.98"))
+            OrderItem(smartPhoneProdtucId, "Smartphone Premium X1", 1, productUnitPrice = BigDecimal("899.99")),
+            OrderItem(casqueProdtucId, "Casque Audio Bluetooth", 2, productUnitPrice = BigDecimal("249.99"))
         ),
         paymentMethod = PaymentMethod.CREDIT_CARD,
         paymentStatus = PaymentStatus.PENDING,
@@ -171,7 +171,7 @@ val mockOrders = listOf(
     Order(
         order2Id,
         orderNumber = "CMD-20250819-0002",
-        customerName = "customer",
+        customerUserName = "customer",
         status = OrderStatus.CONFIRMED,
         subtotal = BigDecimal("1299.99"),
         shippingAmount = BigDecimal("0.00"),
@@ -182,7 +182,7 @@ val mockOrders = listOf(
         estimatedDeliveryDate = Instant.parse("2025-08-22T14:00:00Z"),
         notes = "Cadeau, emballage soigné",
         items = listOf(
-            OrderItem(ordinateurProdtucId, "Ordinateur Portable Gaming", 1, BigDecimal("1299.99"), BigDecimal("1299.99"))
+            OrderItem(ordinateurProdtucId, "Ordinateur Portable Gaming", 1, productUnitPrice = BigDecimal("1299.99"))
         ),
         paymentMethod = PaymentMethod.PAYPAL,
         paymentStatus = PaymentStatus.COMPLETED,
@@ -191,7 +191,7 @@ val mockOrders = listOf(
     Order(
         order3Id,
         orderNumber = "CMD-20250819-0003",
-        customerName = "customer",
+        customerUserName = "customer",
         status = OrderStatus.PROCESSING,
         subtotal = BigDecimal("329.99"),
         shippingAmount = BigDecimal("4.90"),
@@ -202,7 +202,7 @@ val mockOrders = listOf(
         estimatedDeliveryDate = Instant.parse("2025-08-28T16:30:00Z"),
         notes = null,
         items = listOf(
-            OrderItem(montreProdtucId, "Montre Connectée Sport", 1, BigDecimal("329.99"), BigDecimal("329.99"))
+            OrderItem(montreProdtucId, "Montre Connectée Sport", 1, productUnitPrice = BigDecimal("329.99"))
         ),
         paymentMethod = PaymentMethod.BANK_TRANSFER,
         paymentStatus = PaymentStatus.PENDING,
@@ -211,7 +211,7 @@ val mockOrders = listOf(
     Order(
         order4Id,
         orderNumber = "CMD-20250819-0004",
-        customerName = "customer",
+        customerUserName = "customer",
         status = OrderStatus.SHIPPED,
         subtotal = BigDecimal("449.99"),
         shippingAmount = BigDecimal("15.00"),
@@ -222,7 +222,7 @@ val mockOrders = listOf(
         estimatedDeliveryDate = Instant.parse("2025-08-24T09:00:00Z"),
         notes = "Expédition express DHL",
         items = listOf(
-            OrderItem(tabletteProdtucId, "Tablette Graphique Pro", 1, BigDecimal("449.99"), BigDecimal("449.99"))
+            OrderItem(tabletteProdtucId, "Tablette Graphique Pro", 1, productUnitPrice =  BigDecimal("449.99"))
         ),
         paymentMethod = PaymentMethod.CASH_ON_DELIVERY,
         paymentStatus = PaymentStatus.PENDING,
@@ -231,7 +231,7 @@ val mockOrders = listOf(
     Order(
         order5Id,
         orderNumber = "CMD-20250819-0005",
-        customerName = "customer",
+        customerUserName = "customer",
         status = OrderStatus.DELIVERED,
         subtotal = BigDecimal("199.99"),
         shippingAmount = BigDecimal("0.00"),
@@ -242,7 +242,7 @@ val mockOrders = listOf(
         estimatedDeliveryDate = Instant.parse("2025-08-20T11:00:00Z"),
         notes = "Remis en main propre",
         items = listOf(
-            OrderItem(cameraProdtucId, "Caméra Action 4K", 1, BigDecimal("199.99"), BigDecimal("199.99"))
+            OrderItem(cameraProdtucId, "Caméra Action 4K", 1, productUnitPrice = BigDecimal("199.99"))
         ),
         paymentMethod = PaymentMethod.CREDIT_CARD,
         paymentStatus = PaymentStatus.COMPLETED,
