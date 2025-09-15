@@ -10,6 +10,13 @@ import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import kotlin.jvm.optionals.getOrNull
@@ -17,15 +24,53 @@ import kotlin.jvm.optionals.getOrNull
 @Service
 class UserService @Autowired constructor(
     private val userRepository: UserRepository,
+    private val mongoTemplate: MongoTemplate,
     private val passwordEncoder: BCryptPasswordEncoder) {
     
     private val logger = LoggerFactory.getLogger(UserService::class.java)
 
-    fun getAllUsers(): List<User> {
-        logger.debug("Retrieving all users")
-        val users = userRepository.findAll()
-        logger.info("Number of users found: {}", users.size)
-        return users
+    fun searchUsers(search: String?, isActive: String?, hasOrders: String?,
+                    page: Int, size: Int): Page<User> {
+        logger.debug("Retrieving users with filters - search: {}, isActive: {}, hasOrders: {}, page: {}, size: {}",
+            search, isActive, hasOrders, page, size)
+
+        val query = Query()
+        val criteriaList = mutableListOf<Criteria>()
+
+        if (!search.isNullOrBlank()) {
+            criteriaList.add(
+                Criteria().orOperator(
+                    Criteria.where("firstName").regex(search, "i"),
+                    Criteria.where("lastName").regex(search, "i"),
+                    Criteria.where("email").regex(search, "i")
+                )
+            )
+        }
+
+        if (!isActive.isNullOrBlank()) {
+            criteriaList.add(Criteria.where("isActive").`is`(isActive.toBoolean()))
+        }
+
+        if (!hasOrders.isNullOrBlank()) {
+            if (hasOrders.toBoolean()) {
+                criteriaList.add(Criteria.where("orderCount").gt(0))
+            } else {
+                criteriaList.add(Criteria.where("orderCount").`is`(0))
+            }
+        }
+
+        if (criteriaList.isNotEmpty()) {
+            query.addCriteria(Criteria().andOperator(*criteriaList.toTypedArray()))
+        }
+
+        val pageable: Pageable = PageRequest.of(page, size)
+        query.with(pageable)
+
+        val users = mongoTemplate.find(query, User::class.java)
+        val total = mongoTemplate.count(Query.of(query).limit(-1).skip(-1), User::class.java)
+
+        logger.info("Number of users found: {}", total)
+        return PageImpl(users, pageable, total)
     }
 
     fun getUserById(id: String): User {

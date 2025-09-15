@@ -10,6 +10,7 @@ import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.service.UserService
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -24,8 +25,12 @@ class UserController @Autowired constructor(
 
     @GetMapping
     @PreAuthorize("hasAuthority('$ADMIN_ROLE')")
-    fun getAllUsers(): ResponseEntity<List<UserDto>> {
-        return userService.getAllUsers()
+    fun searchUsers(@RequestParam(required = false) search: String?,
+                    @RequestParam(required = false) isActive: String?,
+                    @RequestParam(required = false) hasOrders: String?,
+                    @RequestParam(defaultValue = "0") page: Int,
+                    @RequestParam(defaultValue = "20") size: Int): ResponseEntity<Page<UserDto>> {
+        return userService.searchUsers(search, isActive, hasOrders, page, size)
             .map { it.toDto() }
             .let { ResponseEntity.ok(it) }
     }

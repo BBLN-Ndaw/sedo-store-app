@@ -16,8 +16,11 @@ data class User(
     @field:Indexed(unique = true)
     val userName: String,
     val password: String,
+    @field:Indexed
     val email: String,
+    @field:Indexed
     val firstName: String,
+    @field:Indexed
     val lastName: String,
     val address: Address,
     val numTel: String? = null,
