@@ -4,6 +4,7 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.USER
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
+import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.dto.CreateUserDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
 import com.sedo.jwtauth.model.dto.UserDto
@@ -24,7 +25,7 @@ class UserController @Autowired constructor(
 ) {
 
     @GetMapping
-    @PreAuthorize("hasAuthority('$ADMIN_ROLE')")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun searchUsers(@RequestParam(required = false) search: String?,
                     @RequestParam(required = false) isActive: String?,
                     @RequestParam(required = false) hasOrders: String?,
@@ -51,16 +52,22 @@ class UserController @Autowired constructor(
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun getUserById(@PathVariable id: String): ResponseEntity<UserDto> {
         return userService.getUserById(id)
             .toDto()
             .let { ResponseEntity.ok(it) }
     }
 
-
+    @PutMapping("/status/{id}")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun updateUserStatus(@PathVariable id: String, @RequestBody action: ActionDto): ResponseEntity<UserDto> {
+        return userService.updateStatus(id, action)
+            .toDto().let { ResponseEntity.ok(it) }
+    }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun updateUser(
         @PathVariable id: String, 
         @Valid @RequestBody updateRequest: UserDto
@@ -87,7 +94,7 @@ class UserController @Autowired constructor(
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('OWNER')")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun deleteUser(@PathVariable id: String): ResponseEntity<UserDto> {
         return userService.deleteUser(id)
             .toDto()

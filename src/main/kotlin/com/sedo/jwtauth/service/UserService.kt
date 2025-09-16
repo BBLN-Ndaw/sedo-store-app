@@ -3,6 +3,7 @@ package com.sedo.jwtauth.service
 import com.sedo.jwtauth.exception.DuplicateUsernameException
 import com.sedo.jwtauth.exception.InvalidPasswordException
 import com.sedo.jwtauth.exception.UserNotFoundException
+import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.dto.Address
 import com.sedo.jwtauth.model.dto.CreateUserDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
@@ -114,6 +115,18 @@ class UserService @Autowired constructor(
         logger.info("User created successfully: {} (ID: {})", savedUser.userName, savedUser.id)
         return savedUser
     }
+
+    fun updateStatus(userId: String, action: ActionDto): User {
+        logger.info("Updating status: {} for user {}", action, userId)
+        val user = getUserById(userId)
+        val updatedUser = user.copy(isActive = action.value == "activate")
+        logger.info("Updated status: {}", updatedUser.isActive)
+        logger.info("Updated user: {}", updatedUser)
+        userRepository.save(updatedUser)
+        return updatedUser
+    }
+
+
 
     fun updateUser(idOldUser: String, userName: String?, firstName: String?, lastName: String?, address: Address?, email: String?, isActive: Boolean?, roles: List<String>?): User {
         logger.info("Updating user ID: {}", idOldUser)
