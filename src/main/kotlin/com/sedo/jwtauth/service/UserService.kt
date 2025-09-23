@@ -5,8 +5,8 @@ import com.sedo.jwtauth.exception.InvalidPasswordException
 import com.sedo.jwtauth.exception.UserNotFoundException
 import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.dto.Address
-import com.sedo.jwtauth.model.dto.CreateUserDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
+import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -20,6 +20,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
+import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 
 @Service
@@ -92,21 +93,22 @@ class UserService @Autowired constructor(
             }
     }
 
-    fun createUser(createUserDto: CreateUserDto): User {
-        logger.info("Creating new user: {} with role: {}", createUserDto.username, createUserDto.roles.joinToString())
+    fun createUser(createUserDto: UserDto): User {
+        logger.info("Creating new user: {} with role: {}", createUserDto.userName, createUserDto.roles.joinToString())
         
-        userRepository.findByUserName(createUserDto.username)?.let {
-            logger.warn("Attempt to create existing user: {}", createUserDto.username)
-            throw DuplicateUsernameException(createUserDto.username)
+        userRepository.findByUserName(createUserDto.userName)?.let {
+            logger.warn("Attempt to create existing user: {}", createUserDto.userName)
+            throw DuplicateUsernameException(createUserDto.userName)
         }
         
         val user = User(
-            userName = createUserDto.username,
-            password = passwordEncoder.encode(createUserDto.password), // ✅ Hash du password
+            userName = createUserDto.userName,
+            password = passwordEncoder.encode(generateRandomPassword()),
             firstName = createUserDto.firstName,
             lastName = createUserDto.lastName,
             address = createUserDto.address,
             email = createUserDto.email,
+            numTel = createUserDto.numTel,
             isActive = createUserDto.isActive,
             roles = createUserDto.roles
         )
@@ -170,5 +172,9 @@ class UserService @Autowired constructor(
         userRepository.deleteById(id)
         logger.info("User deleted successfully ID: {}", id)
         return user
+    }
+
+    private fun generateRandomPassword(): String{
+        return "${UUID.randomUUID()}";
     }
 }

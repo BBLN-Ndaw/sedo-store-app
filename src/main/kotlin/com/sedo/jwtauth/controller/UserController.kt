@@ -5,7 +5,6 @@ import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.model.dto.ActionDto
-import com.sedo.jwtauth.model.dto.CreateUserDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
 import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.service.UserService
@@ -38,7 +37,7 @@ class UserController @Autowired constructor(
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
-    fun createUser(@Valid @RequestBody createUserDto: CreateUserDto): ResponseEntity<UserDto> {
+    fun createUser(@Valid @RequestBody createUserDto: UserDto): ResponseEntity<UserDto> {
         return userService.createUser(createUserDto)
             .toDto()
             .let { ResponseEntity.status(HttpStatus.CREATED).body(it) }
