@@ -28,7 +28,7 @@ data class UserDto(
 
     val numTel: String? = null,
 
-    val isActive: Boolean = true,
+    val isActive: Boolean = false,
 
     @field:Size(min = 1, message = "At least one role is required")
     val roles: List<String> = listOf("CLIENT"),

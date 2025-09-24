@@ -11,13 +11,14 @@ import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.core.MongoTemplate
-import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -27,9 +28,14 @@ import kotlin.jvm.optionals.getOrNull
 class UserService @Autowired constructor(
     private val userRepository: UserRepository,
     private val mongoTemplate: MongoTemplate,
-    private val passwordEncoder: BCryptPasswordEncoder) {
-    
+    private val passwordEncoder: BCryptPasswordEncoder,
+    private val emailService: EmailService,
+    private val passwordResetTokenService: PasswordResetTokenService) {
+
     private val logger = LoggerFactory.getLogger(UserService::class.java)
+
+    @Value("\${app.frontend.url:http://localhost:4200}")
+    private lateinit var frontendUrl: String
 
     fun searchUsers(search: String?, isActive: String?, hasOrders: String?,
                     page: Int, size: Int): Page<User> {
@@ -115,6 +121,22 @@ class UserService @Autowired constructor(
         
         val savedUser = userRepository.save(user)
         logger.info("User created successfully: {} (ID: {})", savedUser.userName, savedUser.id)
+
+        // Créer le token de création de mot de passe et envoyer l'email
+        try {
+            val token = passwordResetTokenService.createPasswordResetToken(savedUser.id!!)
+            emailService.sendPasswordCreationEmail(
+                savedUser.email,
+                savedUser.firstName,
+                savedUser.lastName,
+                savedUser.userName,
+                token
+            )
+            logger.info("Password creation email sent to user: {}", savedUser.email)
+        } catch (e: Exception) {
+            logger.error("Failed to send password creation email for user: {}", savedUser.userName, e)
+        }
+
         return savedUser
     }
 
@@ -160,6 +182,59 @@ class UserService @Autowired constructor(
         userRepository.save(updatedUser)
         logger.info("Password updated successfully for user ID: {}", id)
         return UpdatePasswordDto(currentPassword = currentPassword, newPassword = newPassword)
+    }
+
+    fun setPasswordWithToken(token: String, newPassword: String): User {
+        logger.info("Setting password with token")
+
+        val userId = passwordResetTokenService.validateToken(token)
+            ?: throw InvalidPasswordException("Token invalide ou expiré")
+
+        val user = getUserById(userId)
+        val updatedUser = user.copy(password = passwordEncoder.encode(newPassword), isActive = true)
+        userRepository.save(updatedUser)
+
+        passwordResetTokenService.markTokenAsUsed(token)
+
+        logger.info("Password set successfully for user ID: {}", userId)
+        return updatedUser
+    }
+
+    fun validateTokenAndGetRedirectUrl(token: String): String {
+        logger.info("Validating token and generating redirect URL")
+
+        val userId = passwordResetTokenService.validateToken(token)
+
+        return if (userId != null) {
+            val user = getUserById(userId)
+            buildSetPasswordUrl(frontendUrl, user, token)
+        } else {
+            buildErrorUrl(frontendUrl)
+        }
+    }
+
+    private fun buildSetPasswordUrl(frontendUrl: String, user: User, token: String): String {
+        val params = mapOf(
+            "valid" to "true",
+            "firstName" to user.firstName,
+            "lastName" to user.lastName,
+            "userName" to user.userName,
+            "email" to user.email,
+            "token" to token
+        )
+
+        val queryString = params.entries.joinToString("&") { "${it.key}=${it.value}" }
+        return "$frontendUrl/set-password?$queryString"
+    }
+
+    private fun buildErrorUrl(frontendUrl: String): String {
+        val params = mapOf(
+            "valid" to "false",
+            "message" to "Token+invalide+ou+expire"
+        )
+
+        val queryString = params.entries.joinToString("&") { "${it.key}=${it.value}" }
+        return "$frontendUrl/set-password?$queryString"
     }
 
     fun deleteUser(id: String): User {

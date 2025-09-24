@@ -4,19 +4,23 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
+import com.sedo.jwtauth.constants.Constants.Endpoints.SET_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
 import com.sedo.jwtauth.model.dto.LoginResponseDto
 import com.sedo.jwtauth.model.dto.LoginUserDto
+import com.sedo.jwtauth.model.dto.SetPasswordDto
 import com.sedo.jwtauth.service.AuthService
+import com.sedo.jwtauth.service.UserService
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping(API)
-class AuthController @Autowired constructor(
-    private val authService: AuthService
+class AuthController(
+    private val authService: AuthService,
+    private val userService: UserService
 ) {
 
     @PostMapping(LOGIN)
@@ -36,5 +40,17 @@ class AuthController @Autowired constructor(
     fun logout(@CookieValue(value = "refresh_token") refreshToken: String, response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
             return authService.logout(refreshToken, response)
                 .let { ResponseEntity.ok(it) }
+    }
+
+    @PostMapping(SET_PASSWORD)
+    fun setPassword(@Valid @RequestBody setPasswordDto: SetPasswordDto): ResponseEntity<Map<String, String>> {
+        userService.setPasswordWithToken(setPasswordDto.token, setPasswordDto.password)
+        return ResponseEntity.ok(mapOf("message" to "Mot de passe défini avec succès"))
+    }
+
+    @GetMapping(VALIDATE_TOKEN)
+    fun validateTokenAndRedirect(@RequestParam token: String, response: HttpServletResponse) {
+        val redirectUrl = userService.validateTokenAndGetRedirectUrl(token)
+        response.sendRedirect(redirectUrl)
     }
 }

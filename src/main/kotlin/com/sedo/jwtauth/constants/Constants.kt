@@ -13,6 +13,8 @@ object Constants {
         const val LOGOUT = "/auth/logout"
         const val CHECK_LOGIN = "/auth/check_login"
         const val REFRESH_TOKEN = "/auth/refresh_token"
+        const val SET_PASSWORD = "/auth/set-password"
+        const val VALIDATE_TOKEN = "/auth/validate-token"
         const val ADMIN = "/admin"
         const val EMPLOYEE = "/employee"
         const val USER = "$API/users"

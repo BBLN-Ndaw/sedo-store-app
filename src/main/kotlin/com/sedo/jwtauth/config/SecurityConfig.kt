@@ -4,6 +4,8 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
+import com.sedo.jwtauth.constants.Constants.Endpoints.SET_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.filter.JwtAuthFilter
 import jakarta.servlet.http.HttpServletResponse
@@ -56,6 +58,8 @@ class SecurityConfig(
                     .requestMatchers("$API$LOGIN").permitAll()
                     .requestMatchers("$API$LOGOUT").permitAll()
                     .requestMatchers("$API$REFRESH_TOKEN").permitAll()
+                    .requestMatchers("$API$SET_PASSWORD").permitAll()
+                    .requestMatchers("$API$VALIDATE_TOKEN").permitAll()
 
                     // Admin only endpoints (contrôle total)
                     .requestMatchers("/api/admin").hasAuthority(ADMIN_ROLE)

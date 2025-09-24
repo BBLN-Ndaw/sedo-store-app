@@ -4,6 +4,8 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
+import com.sedo.jwtauth.constants.Constants.Endpoints.SET_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
 import com.sedo.jwtauth.exception.AuthenticationFailedException
 import com.sedo.jwtauth.util.JwtUtil
 import jakarta.servlet.FilterChain
@@ -59,6 +61,8 @@ class JwtAuthFilter(
             API + LOGIN,
             API + LOGOUT,
             API + REFRESH_TOKEN,
+            API + SET_PASSWORD,
+            API + VALIDATE_TOKEN
         )
         return publicEndpoints.contains(servletPath)
     }
