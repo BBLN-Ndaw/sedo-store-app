@@ -3,9 +3,13 @@ package com.sedo.jwtauth.service
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
+import org.springframework.mail.javamail.MimeMessageHelper
 import org.springframework.stereotype.Service
+import com.sedo.jwtauth.model.entity.Order
+import java.nio.charset.StandardCharsets
 
 @Service
 class EmailService @Autowired constructor(
@@ -27,7 +31,7 @@ class EmailService @Autowired constructor(
             val message = SimpleMailMessage().apply {
                 setFrom(fromAddress)
                 setTo(email)
-                subject = "Création de votre compte Sedo Store - Définir votre mot de passe"
+                subject = "Création de votre compte PAYCE - Définir votre mot de passe"
                 text = buildPasswordCreationEmailText(firstName, lastName, token)
             }
 
@@ -37,6 +41,31 @@ class EmailService @Autowired constructor(
         } catch (e: Exception) {
             logger.error("Failed to send password creation email to: {}", email, e)
             throw RuntimeException("Failed to send email", e)
+        }
+    }
+
+    fun sendOrderConfirmationEmail(order: Order, invoicePdf: ByteArray) {
+        logger.info("Sending order confirmation email to: {} for order: {}", order.customerEmail, order.orderNumber)
+
+        try {
+            val mimeMessage = mailSender.createMimeMessage()
+            val helper = MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name())
+
+            helper.setFrom(fromAddress)
+            helper.setTo(order.customerEmail!!)
+            helper.setSubject("Confirmation de commande #${order.orderNumber} - ${order.totalAmount}€")
+            helper.setText(buildOrderConfirmationEmailText(order), false)
+
+            // Ajouter la facture PDF en pièce jointe
+            val pdfResource = ByteArrayResource(invoicePdf)
+            helper.addAttachment("Facture_${order.orderNumber}.pdf", pdfResource)
+
+            mailSender.send(mimeMessage)
+            logger.info("Order confirmation email sent successfully to: {} for order: {}", order.customerEmail, order.orderNumber)
+
+        } catch (e: Exception) {
+            logger.error("Failed to send order confirmation email to: {} for order: {}", order.customerEmail, order.orderNumber, e)
+            throw RuntimeException("Failed to send order confirmation email", e)
         }
     }
 
@@ -57,7 +86,50 @@ class EmailService @Autowired constructor(
             Une fois votre mot de passe défini, vous pourrez vous connecter à l'application avec vos identifiants.
             
             Cordialement,
-            Le gestionnaire de Sedo Store
+            Le gestionnaire
+        """.trimIndent()
+    }
+
+    private fun buildOrderConfirmationEmailText(order: Order): String {
+        val itemsText = order.items.joinToString("\n") { item ->
+            "- ${item.productName} x${item.quantity} - ${item.productUnitPrice * item.quantity.toBigDecimal()}€"
+        }
+
+        return """
+            Bonjour ${order.customerUserName},
+
+            Votre commande #${order.orderNumber} a été confirmée et le paiement a été traité avec succès !
+
+            DÉTAILS DE LA COMMANDE :
+            
+            Articles commandés :
+            $itemsText
+            
+            Sous-total HT : ${order.subtotal}€
+            TVA : ${order.taxAmount}€
+            Frais de port : ${order.shippingAmount}€
+            TOTAL TTC : ${order.totalAmount}€
+            
+            ADRESSE DE LIVRAISON :
+            ${order.shippingAddress?.let { 
+                "${it.street}\n${it.postalCode} ${it.city}\n${it.country}" 
+            } ?: "Non spécifiée"}
+            
+            Votre facture est disponible en pièce jointe de cet email.
+            
+            Date de livraison estimée : ${order.estimatedDeliveryDate?.let { 
+                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                    .format(it.atZone(java.time.ZoneId.systemDefault())) 
+            } ?: "À définir"}
+            
+            Vous pouvez suivre l'état de votre commande en vous connectant à votre compte.
+            
+            Merci pour votre confiance !
+            
+            Cordialement,
+            L'équipe SEDO Store
+            
+            Pour toute question : sedosebe.store@gmail.com
         """.trimIndent()
     }
 }

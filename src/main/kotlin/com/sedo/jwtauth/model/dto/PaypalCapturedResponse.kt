@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PaypalCapturedResponse(
     val id: String,
+    val orderNumber: String?,
     val status: String,
     val payment_source: PaymentSource,
     val purchase_units: List<PurchaseUnit>,

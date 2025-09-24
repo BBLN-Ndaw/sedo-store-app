@@ -29,7 +29,9 @@ class OrderService(
     private val orderRepository: OrderRepository,
     private val productRepository: ProductRepository,
     private val auditService: AuditService,
-    private val payPalService: PayPalService
+    private val payPalService: PayPalService,
+    private val emailService: EmailService,
+    private val invoicePdfService: InvoicePdfService
 ) {
     
     private val logger = LoggerFactory.getLogger(OrderService::class.java)
@@ -127,6 +129,17 @@ class OrderService(
 
         orderRepository.save(updatedOrder)
 
+        // Générer et envoyer la facture PDF par email
+        try {
+            logger.info("Generating and sending invoice PDF for order: {}", updatedOrder.orderNumber)
+            val payerFullName = captureResponse.payer.name.given_name + " " + captureResponse.payer.name.surname
+            val invoicePdf = invoicePdfService.generateInvoicePdf(updatedOrder, payerFullName)
+            emailService.sendOrderConfirmationEmail(updatedOrder, invoicePdf)
+            logger.info("Invoice PDF sent successfully for order: {}", updatedOrder.orderNumber)
+        } catch (e: Exception) {
+            logger.error("Failed to generate or send invoice PDF for order: {}", updatedOrder.orderNumber, e)
+        }
+
         auditService.logAction(
             userName = "SYSTEM",
             action = "PAYMENT_CAPTURED",
@@ -136,7 +149,7 @@ class OrderService(
             oldData = mapOf("status" to PENDING.name, "paymentStatus" to PaymentStatus.PENDING.name),
             newData = mapOf("status" to CONFIRMED.name, "paymentStatus" to PaymentStatus.COMPLETED.name)
         )
-        return captureResponse
+        return captureResponse.copy(orderNumber = updatedOrder.orderNumber)
 
     }
     
