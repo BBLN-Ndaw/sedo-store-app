@@ -1,5 +1,7 @@
 package com.sedo.jwtauth.controller
 
+import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
+import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.model.dto.CartDto
 import com.sedo.jwtauth.model.dto.OrderDto
@@ -20,13 +22,19 @@ class OrderController(
 ) {
     
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun getAllOrders(): ResponseEntity<List<OrderDto>> {
         return ResponseEntity.ok(orderService.getAllOrders().map { it.toDto() })
     }
     @GetMapping("/customer")
     fun getOrdersByCustomerUserName(): ResponseEntity<List<OrderDto>> {
         return ResponseEntity.ok(orderService.getOrdersByCustomerUserName().map { it.toDto() })
+    }
+
+    @GetMapping("/customer/{customerUserName}")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun getCustomerOrder(@PathVariable customerUserName: String): ResponseEntity<List<OrderDto>> {
+        return ResponseEntity.ok(orderService.getCustomerOrders(customerUserName).map { it.toDto() })
     }
 
     @PostMapping("/create")
@@ -41,7 +49,7 @@ class OrderController(
     }
 
     @PutMapping("/update/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun updateOrderStatus(
         @PathVariable id: String,
         @RequestBody newOrderStatus: OrderStatus
@@ -57,13 +65,12 @@ class OrderController(
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE', 'CLIENT')")
     fun getOrderById(@PathVariable id: String): ResponseEntity<OrderDto> {
         return ResponseEntity.ok(orderService.getOrderById(id).toDto())
     }
     
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun getOrdersByStatus(@PathVariable status: OrderStatus): ResponseEntity<List<Order>> {
         return ResponseEntity.ok(orderService.getOrdersByStatus(status))
     }

@@ -45,7 +45,7 @@ class AuthController(
     @PostMapping(SET_PASSWORD)
     fun setPassword(@Valid @RequestBody setPasswordDto: SetPasswordDto): ResponseEntity<Map<String, String>> {
         userService.setPasswordWithToken(setPasswordDto.token, setPasswordDto.password)
-        return ResponseEntity.ok(mapOf("message" to "Mot de passe défini avec succès"))
+        return ResponseEntity.ok(mapOf("message" to "Mot de passe définit avec succès"))
     }
 
     @GetMapping(VALIDATE_TOKEN)

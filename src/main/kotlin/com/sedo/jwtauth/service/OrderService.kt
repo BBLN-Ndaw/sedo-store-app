@@ -2,6 +2,7 @@ package com.sedo.jwtauth.service
 
 import Product
 import com.sedo.jwtauth.constants.Constants.Order.FREE_SHIPPING_AMOUNT
+import com.sedo.jwtauth.event.OrderCompletedEvent
 import com.sedo.jwtauth.exception.UnAvailableProductException
 import com.sedo.jwtauth.exception.ResourceNotFoundException
 import com.sedo.jwtauth.mapper.toOrderItem
@@ -16,6 +17,7 @@ import com.sedo.jwtauth.model.entity.PaymentStatus
 import com.sedo.jwtauth.repository.OrderRepository
 import com.sedo.jwtauth.repository.ProductRepository
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -31,7 +33,9 @@ class OrderService(
     private val auditService: AuditService,
     private val payPalService: PayPalService,
     private val emailService: EmailService,
-    private val invoicePdfService: InvoicePdfService
+    private val invoicePdfService: InvoicePdfService,
+    private val applicationEventPublisher: ApplicationEventPublisher
+
 ) {
     
     private val logger = LoggerFactory.getLogger(OrderService::class.java)
@@ -129,6 +133,15 @@ class OrderService(
 
         orderRepository.save(updatedOrder)
 
+        // Publier l'événement de commande terminée
+        applicationEventPublisher.publishEvent(
+            OrderCompletedEvent(
+                customerUserName = updatedOrder.customerUserName,
+                orderId = updatedOrder.id!!,
+                orderAmount = updatedOrder.totalAmount
+            )
+        )
+
         // Générer et envoyer la facture PDF par email
         try {
             logger.info("Generating and sending invoice PDF for order: {}", updatedOrder.orderNumber)
@@ -162,6 +175,11 @@ class OrderService(
         val customerName = SecurityContextHolder.getContext().authentication.name
         logger.debug("Retrieving orders for customer: {}", customerName)
         return orderRepository.findByCustomerUserNameOrderByCreatedAtDesc(customerName)
+    }
+
+    fun getCustomerOrders(customeruserName:String): List<Order> {
+        logger.debug("Retrieving orders for customer: {}", customeruserName)
+        return orderRepository.findByCustomerUserNameOrderByCreatedAtDesc(customeruserName)
     }
     
     fun getPendingOrders(): List<Order> {
