@@ -1,11 +1,16 @@
 package com.sedo.jwtauth.controller
 
+import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
+import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.mapper.toEntity
+import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.dto.CreateProductDto
 import com.sedo.jwtauth.model.dto.ProductDto
+import com.sedo.jwtauth.model.dto.ProductWithCategoryDto
 import com.sedo.jwtauth.service.ProductService
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -16,9 +21,26 @@ import java.math.BigDecimal
 @RequestMapping("/api/products")
 class ProductController(private val productService: ProductService) {
     
-    @GetMapping
+    @GetMapping("/all")
     fun getAllProducts(): ResponseEntity<List<ProductDto>> {
         return ResponseEntity.ok(productService.getAllProducts().map { it.toDto() })
+    }
+
+    @GetMapping
+    fun searchProducts(@RequestParam(required = false) search: String?,
+                       @RequestParam(required = false) isActive: String?,
+                       @RequestParam(required = false) categoryId: String?,
+                       @RequestParam(required = false) supplierId: String?,
+                       @RequestParam(required = false) isOnPromotion: String?,
+                       @RequestParam(required = false) minPrice: String?,
+                       @RequestParam(required = false) maxPrice: String?,
+                       @RequestParam(required = false) isLowStock: String?,
+                       @RequestParam(required = false) isInStock: String?,
+                       @RequestParam(required = false) isOutOfStock: String?,
+                       @RequestParam(defaultValue = "0") page: Int,
+                       @RequestParam(defaultValue = "50") size: Int): ResponseEntity<Page<ProductWithCategoryDto>> {
+        return ResponseEntity.ok(productService.getProductsWithCategories(search, isActive, categoryId,
+            supplierId, isOnPromotion, minPrice, maxPrice,isLowStock, isInStock,isOutOfStock,page, size))
     }
 
     @GetMapping("/deleted")
@@ -27,8 +49,17 @@ class ProductController(private val productService: ProductService) {
     }
     
     @GetMapping("/{id}")
-    fun getProductById(@PathVariable id: String): ResponseEntity<ProductDto> {
-        return ResponseEntity.ok(productService.getProductById(id).toDto())
+    fun getProductById(@PathVariable id: String): ResponseEntity<ProductWithCategoryDto> {
+        return ResponseEntity.ok(productService.getProductWithCategoryById(id))
+    }
+
+    @PutMapping("/status/{id}")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun updateProductStatus(
+        @PathVariable id: String,
+        @RequestBody action: ActionDto
+    ): ResponseEntity<ProductDto> {
+        return ResponseEntity.ok(productService.updateProductStatus(id, action).toDto())
     }
     
     @GetMapping("/category/{categoryId}")
@@ -40,18 +71,6 @@ class ProductController(private val productService: ProductService) {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
     fun getProductsBySupplier(@PathVariable supplierId: String): ResponseEntity<List<ProductDto>> {
         return ResponseEntity.ok(productService.findBySupplierId(supplierId).map { it.toDto() })
-    }
-    
-    @GetMapping("/low-stock")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getLowStockProducts(): ResponseEntity<List<ProductDto>> {
-        return ResponseEntity.ok(productService.getLowStockProducts().map { it.toDto() })
-    }
-
-    @GetMapping("/out-of-stock")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getOutOfStockProducts(): ResponseEntity<List<ProductDto>> {
-        return ResponseEntity.ok(productService.getOutOfStockProducts().map { it.toDto() })
     }
 
     @GetMapping("/price-range")

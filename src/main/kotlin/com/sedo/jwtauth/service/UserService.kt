@@ -144,9 +144,8 @@ class UserService @Autowired constructor(
         logger.info("Updating status: {} for user {}", action, userId)
         val user = getUserById(userId)
         val updatedUser = user.copy(isActive = action.value == "activate")
-        logger.info("Updated status: {}", updatedUser.isActive)
-        logger.info("Updated user: {}", updatedUser)
         userRepository.save(updatedUser)
+        logger.info("User {} status updated to {}", userId, updatedUser.isActive)
         return updatedUser
     }
 

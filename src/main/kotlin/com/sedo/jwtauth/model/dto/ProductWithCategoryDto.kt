@@ -35,6 +35,8 @@ data class ProductWithCategoryDto(
     @field:DecimalMin(value = "0.0", inclusive = false, message = "Selling price must be greater than 0")
     val sellingPrice: BigDecimal,
 
+    val purchasePrice: BigDecimal? = null,
+
     val taxRate: BigDecimal = BigDecimal("0.20"), //20% par défaut
 
     @field:Min(value = 0, message = "Stock quantity cannot be negative")
