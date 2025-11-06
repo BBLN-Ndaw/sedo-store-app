@@ -11,6 +11,14 @@ spring:
       password: password123
       authentication-database: admin
 
+# Application configuration for development
+app:
+  minio:
+    url: http://localhost:9000
+    access-key: minioadmin
+    secret-key: minioadmin123
+    bucket-name: product-images
+
 #jwt:
 #  secret: myDefaultSecretKeyForJwtTokenGeneration1234567890
 #  access-token-expiration: 1_000

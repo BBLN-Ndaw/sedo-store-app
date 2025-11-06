@@ -19,6 +19,7 @@ object Constants {
         const val ADMIN = "/admin"
         const val EMPLOYEE = "/employee"
         const val USER = "$API/users"
+        const val IMAGE = "$API/products/images"
         const val CATEGORIES = "$API/products/categories"
         const val SUPPLIERS = "$API/suppliers"
         const val PRODUCTS = "$API/products"
