@@ -3,12 +3,9 @@ package com.sedo.jwtauth.service
 import com.sedo.jwtauth.config.MinioProperties
 import io.minio.*
 import io.minio.http.Method
-import io.minio.messages.DeleteError
-import io.minio.messages.DeleteObject
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
-import java.io.InputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -123,8 +120,9 @@ class ImageService(
         val extension = file.originalFilename?.substringAfterLast('.') ?: "jpg"
         val timestamp = System.currentTimeMillis()
         val uuid = UUID.randomUUID().toString().take(8)
+        val sanitizedOriginalFilename = file.originalFilename?.replace("\\s+".toRegex(), "_")?.replace(Regex("\\.[^.]+$"),"") ?: "image"
         val sanitizedProductName = productName.replace("\\s+".toRegex(), "_").lowercase()
-        return "products/$sanitizedProductName/${timestamp}_${uuid}.$extension"
+        return "products/$sanitizedProductName/${sanitizedOriginalFilename}_${timestamp}_${uuid}.$extension"
     }
 
     private fun extractFileNameFromUrl(imageUrl: String): String {

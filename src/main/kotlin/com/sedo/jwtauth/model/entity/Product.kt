@@ -21,7 +21,7 @@ data class Product(
     val stockQuantity: Int,
     val minStock: Int,
     val unit: String,
-    val expirationDate: Instant,
+    val expirationDate: Instant? = null,
     val images: List<String> = emptyList(),
     val isActive: Boolean = true,
     val isOnPromotion: Boolean = false,

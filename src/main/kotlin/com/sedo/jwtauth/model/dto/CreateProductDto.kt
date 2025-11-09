@@ -1,6 +1,5 @@
 package com.sedo.jwtauth.model.dto
 
-import com.sedo.jwtauth.constants.Constants.Product.MARGE
 import jakarta.validation.constraints.*
 import java.math.BigDecimal
 import java.time.Instant
@@ -29,9 +28,9 @@ data class CreateProductDto(
     @field:DecimalMin(value = "0.0", inclusive = false, message = "Selling price must be greater than 0")
     val sellingPrice: BigDecimal,
 
-    @field:NotNull(message = "margin is required")
-    @field:DecimalMin(value = "0.3", inclusive = false, message = "margin must equal ore greater than 30%")
-    val margin: BigDecimal = BigDecimal(MARGE),
+    @field:NotNull(message = "Purchase price is required")
+    @field:DecimalMin(value = "0.0", inclusive = false, message = "Selling price must be greater than 0")
+    val purchasePrice: BigDecimal,
 
     @field:Min(value = 0, message = "Stock quantity cannot be negative")
     val stockQuantity: Int = 0,
@@ -39,19 +38,59 @@ data class CreateProductDto(
     @field:Min(value = 0, message = "Minimum stock cannot be negative")
     val minStock: Int = 0,
 
-    @field:NotNull(message = "Expiration date is required")
-    val expirationDate: Instant,
+    val expirationDate: Instant? = null,
 
     @field:NotBlank(message = "Unit is required")
     val unit: String = "pièce",
 
     val isActive: Boolean = true,
 
-    val imageUrls: List<String> = emptyList(),
+    val images: List<String>,
 
     val isOnPromotion: Boolean = false,
 
     val promotionPrice: BigDecimal? = null,
 
     val promotionEndDate: LocalDateTime? = null,
+)
+
+data class UpdateProductDto(
+    val id: String,
+    @field:Size(min = 2, max = 200, message = "Product name must be between 2 and 200 characters")
+    val name: String? = null,
+
+    @field:Size(max = 1000, message = "Description must not exceed 1000 characters")
+    val description: String? = null,
+
+    @field:Size(min = 3, max = 50, message = "SKU must be between 3 and 50 characters")
+    val sku: String? = null,
+
+    val categoryId: String? = null,
+
+    val supplierId: String? = null,
+
+    @field:DecimalMin(value = "0.0", inclusive = false, message = "Selling price must be greater than 0")
+    val sellingPrice: BigDecimal? = null,
+
+    val taxRate: BigDecimal? = null,
+
+    val purchasePrice: BigDecimal? = null,
+
+    @field:Min(value = 0, message = "Stock quantity cannot be negative")
+    val stockQuantity: Int? = null,
+
+    @field:Min(value = 0, message = "Minimum stock cannot be negative")
+    val minStock: Int? = null,
+
+    val expirationDate: Instant? = null,
+
+    val unit: String? = null,
+
+    val images: List<String>? = null,
+
+    val isOnPromotion: Boolean? = null,
+
+    val promotionPrice: BigDecimal? = null,
+
+    val promotionEndDate: Instant? = null,
 )

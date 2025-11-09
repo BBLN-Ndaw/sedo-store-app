@@ -35,8 +35,7 @@ data class ProductDto(
     @field:Min(value = 0, message = "Minimum stock cannot be negative")
     val minStock: Int = 0,
 
-    @field:NotNull(message = "Expiration date is required")
-    val expirationDate: Instant,
+    val expirationDate: Instant? = null,
 
     @field:NotBlank(message = "Unit is required")
     val unit: String = "pièce",
