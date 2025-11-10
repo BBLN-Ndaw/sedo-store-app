@@ -241,6 +241,31 @@ class ProductService(
         logger.info("Product status updated successfully: {} (ID: {})", updatedProduct.name, updatedProduct.id)
         return updatedProduct
     }
+
+    fun updateProductStockQuantity(id: String, newQuantity: Int): Product {
+        val currentUser = SecurityContextHolder.getContext().authentication.name
+        logger.info("Updating stock quantity for product ID: {} to {} by user: {}", id, newQuantity, currentUser)
+
+        val existingProduct = getProductById(id)
+        val oldQuantity = existingProduct.stockQuantity
+
+        val updatedProduct = existingProduct.copy(stockQuantity = newQuantity)
+
+        val savedProduct = productRepository.save(updatedProduct)
+
+        auditService.logAction(
+            userName = currentUser,
+            action = "STOCK_UPDATE",
+            entityType = "Product",
+            entityId = savedProduct.id,
+            description = "Stock updated for ${savedProduct.name}: $oldQuantity -> $newQuantity",
+            oldData = mapOf("stockQuantity" to oldQuantity.toString()),
+            newData = mapOf("stockQuantity" to newQuantity.toString())
+        )
+
+        logger.info("Stock quantity updated successfully for product: {} (ID: {})", savedProduct.name, savedProduct.id)
+        return savedProduct
+    }
     
     fun updateProduct(product: UpdateProductDto): Product {
         val currentUser = SecurityContextHolder.getContext().authentication.name

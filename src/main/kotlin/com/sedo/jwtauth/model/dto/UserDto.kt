@@ -44,3 +44,5 @@ data class Address(
 )
 
 data class ActionDto(val value: String)
+
+data class StockQuantityDto(val quantity: Int)

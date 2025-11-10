@@ -12,6 +12,7 @@ import com.sedo.jwtauth.model.dto.CreateProductDto
 import com.sedo.jwtauth.model.dto.ProductDto
 import com.sedo.jwtauth.model.dto.ProductWithCategoryDto
 import com.sedo.jwtauth.model.dto.UpdateProductDto
+import com.sedo.jwtauth.model.dto.StockQuantityDto
 import com.sedo.jwtauth.service.ImageService
 import com.sedo.jwtauth.service.ProductService
 import jakarta.validation.Valid
@@ -20,7 +21,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
-import java.math.BigDecimal
 
 @RestController
 @RequestMapping(PRODUCTS)
@@ -69,15 +69,6 @@ class ProductController(
             supplierId, isOnPromotion, minPrice, maxPrice,isLowStock, isInStock,isOutOfStock,page, size))
     }
 
-    @PutMapping("/status/{id}")
-    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
-    fun updateProductStatus(
-        @PathVariable id: String,
-        @RequestBody action: ActionDto
-    ): ResponseEntity<ProductDto> {
-        return ResponseEntity.ok(productService.updateProductStatus(id, action).toDto())
-    }
-
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun updateProduct(
@@ -85,6 +76,24 @@ class ProductController(
         @Valid @RequestBody updateProductDto: UpdateProductDto
     ): ResponseEntity<ProductDto> {
         return ResponseEntity.ok(productService.updateProduct(updateProductDto).toDto())
+    }
+
+    @PatchMapping("/stock/{productId}")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun updateProductStock(
+            @PathVariable productId: String,
+            @Valid @RequestBody stockQuantityDto: StockQuantityDto
+    ): ResponseEntity<ProductDto> {
+        return ResponseEntity.ok(productService.updateProductStockQuantity(productId, stockQuantityDto.quantity).toDto())
+    }
+
+    @PatchMapping("/status/{id}")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun updateProductStatus(
+            @PathVariable id: String,
+            @RequestBody action: ActionDto
+    ): ResponseEntity<ProductDto> {
+        return ResponseEntity.ok(productService.updateProductStatus(id, action).toDto())
     }
 
     @DeleteMapping("/{id}")

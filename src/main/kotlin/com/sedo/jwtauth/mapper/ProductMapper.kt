@@ -23,7 +23,7 @@ fun Product.toDto() = ProductDto(
     imageUrls = this.images,
     isOnPromotion = this.isOnPromotion,
     promotionPrice = this.promotionPrice,
-    promotionEndDate = ofInstant(this.promotionEndDate, systemDefault()))
+    promotionEndDate = this.promotionEndDate?.let { ofInstant(it, systemDefault()) })
 
 
 fun CreateProductDto.toEntity(): Product = Product(
@@ -62,4 +62,4 @@ fun Product.toDtoWithPresignedUrls(imageService: ImageService) = ProductDto(
     imageUrls = imageService.generatePresignedUrls(this.images, 24), // URLs valides 24h
     isOnPromotion = this.isOnPromotion,
     promotionPrice = this.promotionPrice,
-    promotionEndDate = ofInstant(this.promotionEndDate, systemDefault()))
+    promotionEndDate = this.promotionEndDate?.let { ofInstant(it, systemDefault()) })
