@@ -1,6 +1,7 @@
 package com.sedo.jwtauth.controller
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.PRODUCTS
+import com.sedo.jwtauth.constants.Constants.Endpoints.PRODUCT_WITH_CATEGORY
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
@@ -33,12 +34,12 @@ class ProductController(
         return ResponseEntity.ok(productService.getAllProducts().map { it.toDtoWithPresignedUrls(imageService) })
     }
 
-    @GetMapping("product-with-category/all")
+    @GetMapping("$PRODUCT_WITH_CATEGORY/all")
     fun getProductWithCategories(): ResponseEntity<List<ProductWithCategoryDto>> {
         return ResponseEntity.ok(productService.getAllProductsWithCategories())
     }
 
-    @GetMapping("/product-with-category/{id}")
+    @GetMapping("$PRODUCT_WITH_CATEGORY/{id}")
     fun getProductWithCategoryByProductId(@PathVariable id: String): ResponseEntity<ProductWithCategoryDto> {
         return ResponseEntity.ok(productService.getProductWithCategoryByProductId(id))
     }

@@ -3,6 +3,7 @@ package com.sedo.jwtauth.controller
 import com.sedo.jwtauth.constants.Constants.Endpoints.IMAGE
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
+import com.sedo.jwtauth.model.dto.DeleteImagesRequest
 import com.sedo.jwtauth.service.ImageService
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -31,8 +32,8 @@ class ImageController(
     @DeleteMapping
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun deleteProductImage(
-        @RequestParam imageUrls: List<String>
+        @RequestBody deleteImagesRequest: DeleteImagesRequest
     ): ResponseEntity<List<String>> {
-        return ResponseEntity.ok(imageService.deleteImages(imageUrls))
+        return ResponseEntity.ok(imageService.deleteImages(deleteImagesRequest))
     }
 }

@@ -1,6 +1,7 @@
 package com.sedo.jwtauth.service
 
 import com.sedo.jwtauth.config.MinioProperties
+import com.sedo.jwtauth.model.dto.DeleteImagesRequest
 import io.minio.*
 import io.minio.http.Method
 import org.slf4j.LoggerFactory
@@ -70,34 +71,23 @@ class ImageService(
         return files.map { file -> uploadImage(file, productName) }
     }
 
-    fun deleteImage(imageUrl: String) {
-        try {
-            val fileName = if (imageUrl.startsWith("http")) {
-                extractFileNameFromUrl(imageUrl)
-            } else {
-                imageUrl
-            }
+    fun deleteImage(imagesName: String) {
             minioClient.removeObject(
                 RemoveObjectArgs.builder()
                     .bucket(minioProperties.bucketName)
-                    .`object`(fileName)
+                    .`object`(imagesName)
                     .build()
             )
-            logger.info("Image deleted successfully: $imageUrl")
-
-        } catch (e: Exception) {
-            logger.error("Error deleting image: ${e.message}", e)
-            throw RuntimeException("Failed to delete image", e)
-        }
+            logger.info("Image deleted successfully: $imagesName")
     }
 
-    fun deleteImages(imageUrls: List<String>): List<String> {
-        val failedDeletions = mutableListOf<String>()
-        imageUrls.forEach { imageUrl ->
-            deleteImage(imageUrl)
-            failedDeletions.add(imageUrl)
+    fun deleteImages(deleteImagesRequest: DeleteImagesRequest): List<String> {
+        val deletedImages = mutableListOf<String>()
+        deleteImagesRequest.imageUrls.forEach { imageName ->
+            deleteImage(imageName)
+            deletedImages.add(imageName)
         }
-        return failedDeletions
+        return deletedImages
     }
 
     private fun validateImageFile(file: MultipartFile) {
