@@ -26,7 +26,11 @@ class MongoConfig {
     }
 
     class BigDecimalToDecimal128Converter : Converter<BigDecimal, Decimal128> {
-        override fun convert(source: BigDecimal): Decimal128 = Decimal128(source)
+        override fun convert(source: BigDecimal): Decimal128 {
+            // Tronquer à 2 décimales sans arrondi pour garder seulement les 2 premiers chiffres après la virgule
+            val normalizedSource = source.setScale(2, java.math.RoundingMode.DOWN)
+            return Decimal128(normalizedSource)
+        }
     }
 
     class Decimal128ToBigDecimalConverter : Converter<Decimal128, BigDecimal> {

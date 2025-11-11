@@ -42,7 +42,3 @@ data class Address(
     val postalCode: String,
     val country: String = "France",
 )
-
-data class ActionDto(val value: String)
-
-data class StockQuantityDto(val quantity: Int)

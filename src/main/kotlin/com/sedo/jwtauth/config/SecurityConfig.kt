@@ -61,29 +61,7 @@ class SecurityConfig(
                     .requestMatchers("$API$SET_PASSWORD").permitAll()
                     .requestMatchers("$API$VALIDATE_TOKEN").permitAll()
 
-                    // Admin only endpoints (contrôle total)
                     .requestMatchers("/api/admin").hasAuthority(ADMIN_ROLE)
-//
-//                    // Suppliers - Admin et Employee
-//                    .requestMatchers("/api/suppliers/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
-//
-//                    // Products - lecture pour tous, modification pour Admin/Employee
-//                    .requestMatchers(GET, "/api/products/**").hasAnyAuthority("ADMIN", "EMPLOYEE", "CLIENT")
-//                    .requestMatchers(POST, "/api/products").hasAnyAuthority("ADMIN", "EMPLOYEE")
-//                    .requestMatchers(PUT, "/api/products/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
-//                    .requestMatchers(DELETE, "/api/products/**").hasAuthority("ADMIN")
-//
-//                    // Orders - Clients peuvent créer et voir les leurs, Admin/Employee gèrent tout
-//                    .requestMatchers(POST, "/api/orders").hasAnyAuthority("ADMIN", "EMPLOYEE", "CLIENT")
-//                    .requestMatchers(GET, "/api/orders/{id}").hasAnyAuthority("ADMIN", "EMPLOYEE", "CLIENT")
-//                    .requestMatchers("/api/orders/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
-//
-//                    // Sales - Point de vente (Admin/Employee uniquement)
-//                    .requestMatchers("/api/sales/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
-//
-//                    // Dashboard et rapports - Admin et Employee
-//                    .requestMatchers("/api/dashboard/**").hasAnyAuthority("ADMIN", "EMPLOYEE")
-//
                     .anyRequest().authenticated()
             }
             .exceptionHandling { exceptions ->

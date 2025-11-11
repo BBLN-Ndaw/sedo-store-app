@@ -33,6 +33,6 @@ object Constants {
 
     object Order {
         val FREE_SHIPPING_AMOUNT = BigDecimal(50) // Free shipping for orders over 50
-        val TAX = BigDecimal(0.20) // 20% VAT
+        val TAX = BigDecimal("0.20") // 20% VAT
     }
 }

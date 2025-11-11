@@ -8,6 +8,7 @@ import com.sedo.jwtauth.exception.ResourceNotFoundException
 import com.sedo.jwtauth.mapper.toOrderItem
 import com.sedo.jwtauth.model.dto.Address
 import com.sedo.jwtauth.model.dto.CartDto
+import com.sedo.jwtauth.model.dto.OrderStatusUpdateRequest
 import com.sedo.jwtauth.model.dto.PaypalCapturedResponse
 import com.sedo.jwtauth.model.entity.Order
 import com.sedo.jwtauth.model.entity.OrderStatus
@@ -18,6 +19,14 @@ import com.sedo.jwtauth.repository.OrderRepository
 import com.sedo.jwtauth.repository.ProductRepository
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest.of
+import org.springframework.data.domain.Pageable
+import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Criteria.*
+import org.springframework.data.mongodb.core.query.Query
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -34,15 +43,72 @@ class OrderService(
     private val payPalService: PayPalService,
     private val emailService: EmailService,
     private val invoicePdfService: InvoicePdfService,
-    private val applicationEventPublisher: ApplicationEventPublisher
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val mongoTemplate: MongoTemplate
 
 ) {
     
     private val logger = LoggerFactory.getLogger(OrderService::class.java)
     
-    fun getAllOrders(): List<Order> {
+    fun getAllOrders(page: Int, size: Int):  Page<Order> {
         logger.debug("Retrieving all orders")
-        return orderRepository.findAllByOrderByCreatedAtDesc()
+        val query = Query()
+        val pageable: Pageable = of(page, size)
+        query.with(pageable)
+
+        val orders = mongoTemplate.find(query, Order::class.java)
+        val total = mongoTemplate.count(Query.of(query).limit(-1).skip(-1), Order::class.java)
+
+        logger.info("Number of products found: {}", total)
+        return PageImpl(orders, pageable, total)
+    }
+
+    fun searchOrders(search: String?, status: String?, period: String?, page: Int, size: Int): Page<Order> {
+        logger.debug("Searching orders with query: search : {}, status : {} period: {} page: {} size: {}", search, status, period, page, size)
+        val query = createSearchQuery(search, status, period)
+
+        val pageable: Pageable = of(page, size)
+        query.with(pageable)
+
+            val orders = mongoTemplate.find(query, Order::class.java)
+        val total = mongoTemplate.count(Query.of(query).limit(-1).skip(-1), Order::class.java)
+
+        logger.info("Number of orders found for search '{}': {}", search, total)
+        return PageImpl(orders, pageable, total)
+    }
+
+    private fun createSearchQuery(search: String?, status: String?, period: String?):Query {
+        val query = Query()
+        val criteriaList = mutableListOf<Criteria>()
+        if (!search.isNullOrBlank()) {
+            criteriaList.add(
+                    Criteria().orOperator(
+                            where("orderNumber").regex(search, "i"),
+                            where("customerUserName").regex(search, "i"),
+                            where("orderNumber").regex(search, "i")
+                    )
+            )
+        }
+
+        if (!status.isNullOrBlank()) {
+            criteriaList.add(where("status").`is`(status))
+        }
+        if (!period.isNullOrBlank()) {
+            val now = Instant.now()
+            val periodCriteria = when (period) {
+                "today" -> where("createdAt").gte(now.minus(Duration.ofDays(1)))
+                "week" -> where("createdAt").gte(now.minus(Duration.ofDays(7)))
+                "month" -> where("createdAt").gte(now.minus(Duration.ofDays(30)))
+                "quarter" -> where("createdAt").gte(now.minus(Duration.ofDays(90)))
+                else -> null
+            }
+            periodCriteria?.let { criteriaList.add(it) }
+        }
+
+        if (criteriaList.isNotEmpty()) {
+            query.addCriteria(Criteria().andOperator(*criteriaList.toTypedArray()))
+        }
+        return query
     }
     
     fun getOrderById(id: String): Order {
@@ -58,14 +124,18 @@ class OrderService(
         val validatedCart = validateCartItemsPricesWithBase(cart)
 
         val orderSubtotal = validatedCart.items.sumOf { BigDecimal(it.quantity) * it.productUnitPriceHT }
+            .setScale(2, RoundingMode.DOWN)
         val orderTotalTva = validatedCart.items.sumOf { item ->
             val ligneHT = item.productUnitPriceHT.multiply(BigDecimal(item.quantity))
             ligneHT.multiply(item.productTaxRate)
-        }
+        }.setScale(2, RoundingMode.DOWN)
 
         val totalBeforeShippingAmount = orderSubtotal.add(orderTotalTva)
+            .setScale(2, RoundingMode.DOWN)
         val shippingAmount = shippingAmount(totalBeforeShippingAmount)
-        val totalTTCOrder = orderSubtotal.add(orderTotalTva).add(shippingAmount).setScale(2, RoundingMode.DOWN)
+            .setScale(2, RoundingMode.DOWN)
+        val totalTTCOrder = orderSubtotal.add(orderTotalTva).add(shippingAmount)
+            .setScale(2, RoundingMode.DOWN)
 
         val order = Order(
             orderNumber = generateUniqueOrderNumber(),
@@ -83,7 +153,7 @@ class OrderService(
             processedByUser = currentUser,
             paymentMethod = PaymentMethod.PAYPAL,
             paymentStatus = PaymentStatus.PENDING,
-        )
+        ).normalizeAmounts()
 
         // Create PayPal order
          val paymentOrderId =  payPalService.createOrder(totalTTCOrder.toString(), order.orderNumber)
@@ -129,7 +199,7 @@ class OrderService(
                 postalCode = captureResponse.payer.address.postal_code ?: "N/A",
                 country = captureResponse.payer.address.country_code
             ),
-            paymentStatus = PaymentStatus.COMPLETED)
+            paymentStatus = PaymentStatus.COMPLETED).normalizeAmounts()
 
         orderRepository.save(updatedOrder)
 
@@ -163,40 +233,26 @@ class OrderService(
             newData = mapOf("status" to CONFIRMED.name, "paymentStatus" to PaymentStatus.COMPLETED.name)
         )
         return captureResponse.copy(orderNumber = updatedOrder.orderNumber)
-
-    }
-    
-    fun getOrdersByStatus(status: OrderStatus): List<Order> {
-        logger.debug("Retrieving orders with status: {}", status)
-        return orderRepository.findByStatusOrderByCreatedAtDesc(status)
     }
     
     fun getOrdersByCustomerUserName(): List<Order> {
         val customerName = SecurityContextHolder.getContext().authentication.name
-        logger.debug("Retrieving orders for customer: {}", customerName)
+        logger.debug("Retrieving orders for user : {}", customerName)
         return orderRepository.findByCustomerUserNameOrderByCreatedAtDesc(customerName)
     }
 
-    fun getCustomerOrders(customeruserName:String): List<Order> {
-        logger.debug("Retrieving orders for customer: {}", customeruserName)
-        return orderRepository.findByCustomerUserNameOrderByCreatedAtDesc(customeruserName)
-    }
-    
-    fun getPendingOrders(): List<Order> {
-        return getOrdersByStatus(PENDING)
-    }
-    
-    fun getReadyForPickupOrders(): List<Order> {
-        return getOrdersByStatus(READY_FOR_PICKUP)
+    fun getCustomerOrders(customerUserName:String): List<Order> {
+        logger.debug("Retrieving orders for customer: {}", customerUserName)
+        return orderRepository.findByCustomerUserNameOrderByCreatedAtDesc(customerUserName)
     }
 
-    fun updateOrderStatus(orderId: String, newOrderStatus: OrderStatus): Order {
+    fun updateOrderStatus(orderId: String, newOrderStatus: OrderStatusUpdateRequest): Order {
         val currentUser = SecurityContextHolder.getContext().authentication.name
-        logger.info("Updating order {} status to {} by user: {}", orderId, newOrderStatus.name, currentUser)
+        logger.info("Updating order {} status to {} by user: {}", orderId, newOrderStatus.orderStatus, currentUser)
         
         val existingOrder = getOrderById(orderId)
         val oldStatus = existingOrder.status
-        val updatedOrder =  existingOrder.copy(status = newOrderStatus)
+        val updatedOrder =  existingOrder.copy(status = newOrderStatus.orderStatus).normalizeAmounts()
         
         val savedOrder = orderRepository.save(updatedOrder)
         
@@ -205,12 +261,12 @@ class OrderService(
             action = "STATUS_UPDATE",
             entityType = "Order",
             entityId = savedOrder.id,
-            description = "Updated order #${savedOrder.orderNumber} status: $oldStatus -> ${newOrderStatus.name}",
+            description = "Updated order #${savedOrder.orderNumber} status: $oldStatus -> ${newOrderStatus.orderStatus}",
             oldData = mapOf("status" to oldStatus.name),
-            newData = mapOf("status" to newOrderStatus.name)
+            newData = mapOf("status" to newOrderStatus.orderStatus)
         )
         
-        logger.info("Order status updated successfully: #{} -> {}", savedOrder.orderNumber, newOrderStatus.name)
+        logger.info("Order status updated successfully: #{} -> {}", savedOrder.orderNumber, newOrderStatus.orderStatus)
         return savedOrder
     }
     
@@ -220,7 +276,7 @@ class OrderService(
 
         val existingOrder = getOrderById(orderId)
         val oldStatus = existingOrder.status
-        val updatedOrder =  existingOrder.copy(status = CANCELLED)
+        val updatedOrder =  existingOrder.copy(status = CANCELLED).normalizeAmounts()
         val savedOrder = orderRepository.save(updatedOrder)
 
         auditService.logAction(
@@ -235,31 +291,6 @@ class OrderService(
 
         logger.info("Order status cancelled successfully: #{} -> {}", savedOrder.orderNumber, CANCELLED)
         return savedOrder
-    }
-    
-    fun getOrderStats(): Map<String, Any> {
-        val allOrders = orderRepository.findAll().toList()
-        
-        val statusCounts = OrderStatus.entries.associateWith { status ->
-            allOrders.count { it.status == status }
-        }
-        
-        val totalOrders = allOrders.size
-        val totalRevenue = allOrders.filter { it.status == DELIVERED }
-            .sumOf { it.totalAmount }
-        
-        val averageOrderValue = if (totalOrders > 0) {
-            allOrders.sumOf { it.totalAmount }.divide(BigDecimal(totalOrders))
-        } else BigDecimal.ZERO
-        
-        return mapOf(
-            "totalOrders" to totalOrders,
-            "totalRevenue" to totalRevenue,
-            "averageOrderValue" to averageOrderValue,
-            "statusBreakdown" to statusCounts,
-            "pendingOrders" to (statusCounts[PENDING] ?: 0),
-            "readyForPickup" to (statusCounts[READY_FOR_PICKUP] ?: 0)
-        )
     }
 
     private fun checkStockAvailability(cart: CartDto) {
@@ -276,7 +307,11 @@ class OrderService(
     }
 
     private fun shippingAmount(cartTotalAmount: BigDecimal): BigDecimal {
-        return if (cartTotalAmount >= FREE_SHIPPING_AMOUNT) BigDecimal.ZERO else BigDecimal.TEN
+        return if (cartTotalAmount >= FREE_SHIPPING_AMOUNT) {
+            BigDecimal.ZERO.setScale(2, RoundingMode.DOWN)
+        } else {
+            BigDecimal.TEN.setScale(2, RoundingMode.DOWN)
+        }
     }
 
     fun validateCartItemsPricesWithBase(cart: CartDto): CartDto {
@@ -315,4 +350,23 @@ class OrderService(
                 product.promotionPrice < product.sellingPrice &&
                 (product.promotionEndDate == null || product.promotionEndDate > Instant.now())
     }
+}
+
+/**
+ * Extension function pour normaliser tous les montants BigDecimal d'une commande
+ * à 2 décimales pour éviter les problèmes de précision avec MongoDB Decimal128
+ */
+fun Order.normalizeAmounts(): Order {
+    return this.copy(
+        totalAmount = this.totalAmount.setScale(2, RoundingMode.DOWN),
+        subtotal = this.subtotal.setScale(2, RoundingMode.DOWN),
+        shippingAmount = this.shippingAmount.setScale(2, RoundingMode.DOWN),
+        taxAmount = this.taxAmount.setScale(2, RoundingMode.DOWN),
+        items = this.items.map { item ->
+            item.copy(
+                productUnitPrice = item.productUnitPrice.setScale(2, RoundingMode.DOWN),
+                productTaxRate = item.productTaxRate.setScale(4, RoundingMode.DOWN) // Les taux de TVA gardent plus de précision mais sans arrondi
+            )
+        }
+    )
 }

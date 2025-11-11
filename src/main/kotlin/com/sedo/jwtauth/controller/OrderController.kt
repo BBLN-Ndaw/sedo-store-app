@@ -5,11 +5,13 @@ import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.model.dto.CartDto
 import com.sedo.jwtauth.model.dto.OrderDto
+import com.sedo.jwtauth.model.dto.OrderStatusUpdateRequest
 import com.sedo.jwtauth.model.dto.PaypalCapturedResponse
 import com.sedo.jwtauth.model.entity.Order
 import com.sedo.jwtauth.model.entity.OrderStatus
 import com.sedo.jwtauth.service.OrderService
 import jakarta.validation.Valid
+import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus.CREATED
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -23,9 +25,21 @@ class OrderController(
     
     @GetMapping
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
-    fun getAllOrders(): ResponseEntity<List<OrderDto>> {
-        return ResponseEntity.ok(orderService.getAllOrders().map { it.toDto() })
+    fun getAllOrders(@RequestParam(defaultValue = "0") page: Int,
+                     @RequestParam(defaultValue = "50") size: Int): ResponseEntity<Page<OrderDto>> {
+        return ResponseEntity.ok(orderService.getAllOrders(page, size).map { it.toDto() })
     }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun searchOrders(@RequestParam(required = false) search: String?,
+                     @RequestParam(required = false) status: String?,
+                     @RequestParam(required = false) period: String?,
+                     @RequestParam(defaultValue = "0") page: Int,
+                     @RequestParam(defaultValue = "50") size: Int): ResponseEntity<Page<OrderDto>> {
+        return ResponseEntity.ok(orderService.searchOrders(search, status, period, page, size).map { it.toDto() })
+    }
+
     @GetMapping("/customer")
     fun getOrdersByCustomerUserName(): ResponseEntity<List<OrderDto>> {
         return ResponseEntity.ok(orderService.getOrdersByCustomerUserName().map { it.toDto() })
@@ -48,11 +62,11 @@ class OrderController(
         return ResponseEntity.ok(orderService.captureOrder(orderId))
     }
 
-    @PutMapping("/update/{id}")
+    @PatchMapping("/update/{id}")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun updateOrderStatus(
         @PathVariable id: String,
-        @RequestBody newOrderStatus: OrderStatus
+        @RequestBody newOrderStatus: OrderStatusUpdateRequest
     ): ResponseEntity<OrderDto> {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, newOrderStatus).toDto())
     }
@@ -67,31 +81,5 @@ class OrderController(
     @GetMapping("/{id}")
     fun getOrderById(@PathVariable id: String): ResponseEntity<OrderDto> {
         return ResponseEntity.ok(orderService.getOrderById(id).toDto())
-    }
-    
-    @GetMapping("/status/{status}")
-    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
-    fun getOrdersByStatus(@PathVariable status: OrderStatus): ResponseEntity<List<Order>> {
-        return ResponseEntity.ok(orderService.getOrdersByStatus(status))
-    }
-    
-
-    
-    @GetMapping("/pending")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getPendingOrders(): ResponseEntity<List<OrderDto>> {
-        return ResponseEntity.ok(orderService.getPendingOrders().map { it.toDto() })
-    }
-    
-    @GetMapping("/ready-for-pickup")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getReadyForPickupOrders(): ResponseEntity<List<OrderDto>> {
-        return ResponseEntity.ok(orderService.getReadyForPickupOrders().map { it.toDto() })
-    }
-    
-    @GetMapping("/stats")
-    @PreAuthorize("hasAnyAuthority('ADMIN', 'EMPLOYEE')")
-    fun getOrderStats(): ResponseEntity<Map<String, Any>> {
-        return ResponseEntity.ok(orderService.getOrderStats())
     }
 }
