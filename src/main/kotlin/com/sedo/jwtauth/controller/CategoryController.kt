@@ -5,6 +5,7 @@ import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.mapper.toEntity
+import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.dto.CategoryDto
 import com.sedo.jwtauth.service.CategoryService
 import jakarta.validation.Valid
@@ -28,12 +29,6 @@ class CategoryController(
     fun getCategoryById(@PathVariable id: String): ResponseEntity<CategoryDto> {
         return ResponseEntity.ok(categoryService.getCategoryById(id).toDto())
     }
-
-    @GetMapping("/search")
-    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
-    fun searchCategories(@RequestParam query: String): ResponseEntity<CategoryDto> {
-        return ResponseEntity.ok(categoryService.getCategoryByName(query)?.toDto() )
-    }
     
     @PostMapping
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
@@ -51,18 +46,9 @@ class CategoryController(
         return ResponseEntity.ok(categoryService.updateCategory(id, categoryDto.toEntity()).toDto())
     }
     
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
-    fun deleteCategory(@PathVariable id: String): ResponseEntity<CategoryDto> {
-        categoryService.deleteCategory(id)
-        return ResponseEntity.noContent().build()
+    fun updateCategoryStatus(@PathVariable id: String, action: ActionDto): ResponseEntity<CategoryDto> {
+        return ResponseEntity.ok(categoryService.updateCategoryStatus(id, action).toDto())
     }
-
-    @GetMapping("/deleted")
-    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
-    fun getDeletedCategories(): ResponseEntity<List<CategoryDto>> {
-        return ResponseEntity.ok(categoryService.getAllDeletedCategories().map { it.toDto() })
-    }
-    
-
 }

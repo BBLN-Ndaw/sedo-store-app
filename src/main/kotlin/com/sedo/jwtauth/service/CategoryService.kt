@@ -1,6 +1,8 @@
 package com.sedo.jwtauth.service
 
 import com.sedo.jwtauth.exception.ResourceNotFoundException
+import com.sedo.jwtauth.mapper.toDto
+import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.entity.Category
 import com.sedo.jwtauth.repository.CategoryRepository
 import org.slf4j.LoggerFactory
@@ -18,7 +20,7 @@ class CategoryService(
     
     fun getAllCategories(): List<Category> {
         logger.debug("Retrieving all categories")
-        return categoryRepository.findByIsActiveTrue()
+        return categoryRepository.findAll()
     }
 
     fun getAllCategoriesByIdIn(ids: Set<String>): List<Category> {
@@ -30,11 +32,6 @@ class CategoryService(
         logger.debug("Retrieving category with ID: {}", id)
         return categoryRepository.findById(id).getOrNull()
             ?: throw ResourceNotFoundException("Category not found with ID: $id")
-    }
-
-    fun getCategoryByName(name: String): Category? {
-        logger.debug("Searching categories by name: {}", name)
-        return categoryRepository.findByNameContainingIgnoreCase(name)
     }
     
     fun createCategory(category: Category): Category {
@@ -101,33 +98,37 @@ class CategoryService(
         logger.info("Category updated successfully: {}", savedCategory.name)
         return savedCategory
     }
-    
-    fun deleteCategory(id: String) {
+
+    fun updateCategoryStatus(id: String, action: ActionDto): Category {
+        val status = action.value == "activate"
         val currentUser = SecurityContextHolder.getContext().authentication.name
-        val category = getCategoryById(id)
-        
-        logger.info("Deleting category ID: {} by user: {}", id, currentUser)
-        
-        // Soft delete
-        val deletedCategory = category.copy(
-            isActive = false,
+        val existingCategory = getCategoryById(id)
+
+        logger.info("Updating status of category ID: {} to {} by user: {}", id, status, currentUser)
+
+        val oldData = mapOf(
+            "isActive" to existingCategory.isActive,
         )
-        
-        categoryRepository.save(deletedCategory)
-        
+
+        val updatedCategory = existingCategory.copy(
+            isActive = status,
+        )
+
+        val savedCategory = categoryRepository.save(updatedCategory)
+
         auditService.logAction(
             userName = currentUser,
-            action = "DELETE",
+            action = "UPDATE_STATUS",
             entityType = "Category",
-            entityId = deletedCategory.id,
-            description = "Deleted category: ${deletedCategory.name}"
+            entityId = savedCategory.id,
+            description = "Updated status of category: ${savedCategory.name} to $status",
+            oldData = oldData,
+            newData = mapOf(
+                "isActive" to savedCategory.isActive,
+            )
         )
-        
-        logger.info("Category deleted successfully ID: {}", id)
-    }
-    
-    fun getAllDeletedCategories(): List<Category> {
-        logger.debug("Retrieving all deleted categories")
-        return categoryRepository.findByIsActiveFalse()
+
+        logger.info("Category status updated successfully ID: {} to {}", id, status)
+        return savedCategory
     }
 }

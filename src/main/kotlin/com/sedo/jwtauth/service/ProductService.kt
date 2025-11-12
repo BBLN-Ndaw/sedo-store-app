@@ -34,7 +34,7 @@ class ProductService(
     
     fun getAllProducts(): List<Product> {
         logger.debug("Retrieving all products")
-        return productRepository.findByIsActiveTrue()
+        return productRepository.findAll()
     }
 
     fun getAllProductsWithCategories(): List<ProductWithCategoryDto> {
