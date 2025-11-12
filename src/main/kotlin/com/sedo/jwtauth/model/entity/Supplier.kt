@@ -21,11 +21,11 @@ data class Supplier(
 
     val category: String? = null,
 
-    val email: String? = null,
+    val email: String,
 
-    val phone: String? = null,
+    val phone: String,
 
-    val address: Address? = null,
+    val address: Address,
 
     val isActive: Boolean = true,
 

@@ -19,6 +19,7 @@ object Constants {
         const val IMAGE = "$API/products/images"
         const val CATEGORIES = "$API/products/categories"
         const val PRODUCTS = "$API/products"
+        const val SUPPLIERS = "$API/suppliers"
         const val PRODUCT_WITH_CATEGORY = "/product-with-category"
     }
     

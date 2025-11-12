@@ -18,11 +18,13 @@ data class SupplierDto(
     val category: String? = null,
 
     @field:Email(message = "Email must be valid")
-    val email: String? = null,
+    @field:NotBlank(message = "Email must not be blank")
+    val email: String,
 
     @field:Size(max = 20, message = "Phone number must not exceed 20 characters")
-    val phone: String? = null,
+    @field:NotBlank
+    val phone: String,
 
-    val address: Address? = null,
+    val address: Address,
     val isActive: Boolean = true
 )
