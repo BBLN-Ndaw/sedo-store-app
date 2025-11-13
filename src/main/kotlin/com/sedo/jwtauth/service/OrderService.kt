@@ -3,16 +3,26 @@ package com.sedo.jwtauth.service
 import Product
 import com.sedo.jwtauth.constants.Constants.Order.FREE_SHIPPING_AMOUNT
 import com.sedo.jwtauth.event.OrderCompletedEvent
-import com.sedo.jwtauth.exception.UnAvailableProductException
+import com.sedo.jwtauth.event.InvoiceGenerationRequestedEvent
 import com.sedo.jwtauth.exception.ResourceNotFoundException
+import com.sedo.jwtauth.exception.UnAvailableProductException
 import com.sedo.jwtauth.mapper.toOrderItem
 import com.sedo.jwtauth.model.dto.Address
 import com.sedo.jwtauth.model.dto.CartDto
+import com.sedo.jwtauth.model.dto.DailySalesResponseDto
+import com.sedo.jwtauth.model.dto.DailySalesRequestDto
 import com.sedo.jwtauth.model.dto.OrderStatusUpdateRequest
 import com.sedo.jwtauth.model.dto.PaypalCapturedResponse
+import com.sedo.jwtauth.model.dto.TopSellingProductDto
 import com.sedo.jwtauth.model.entity.Order
-import com.sedo.jwtauth.model.entity.OrderStatus
-import com.sedo.jwtauth.model.entity.OrderStatus.*
+import com.sedo.jwtauth.model.entity.OrderItem
+import com.sedo.jwtauth.model.entity.OrderStatus.CANCELLED
+import com.sedo.jwtauth.model.entity.OrderStatus.CONFIRMED
+import com.sedo.jwtauth.model.entity.OrderStatus.DELIVERED
+import com.sedo.jwtauth.model.entity.OrderStatus.PENDING
+import com.sedo.jwtauth.model.entity.OrderStatus.PROCESSING
+import com.sedo.jwtauth.model.entity.OrderStatus.READY_FOR_PICKUP
+import com.sedo.jwtauth.model.entity.OrderStatus.SHIPPED
 import com.sedo.jwtauth.model.entity.PaymentMethod
 import com.sedo.jwtauth.model.entity.PaymentStatus
 import com.sedo.jwtauth.repository.OrderRepository
@@ -25,7 +35,7 @@ import org.springframework.data.domain.PageRequest.of
 import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Criteria.*
+import org.springframework.data.mongodb.core.query.Criteria.where
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
@@ -41,11 +51,8 @@ class OrderService(
     private val productRepository: ProductRepository,
     private val auditService: AuditService,
     private val payPalService: PayPalService,
-    private val emailService: EmailService,
-    private val invoicePdfService: InvoicePdfService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val mongoTemplate: MongoTemplate
-
 ) {
     
     private val logger = LoggerFactory.getLogger(OrderService::class.java)
@@ -203,25 +210,25 @@ class OrderService(
 
         orderRepository.save(updatedOrder)
 
-        // Publier l'événement de commande terminée
+        // Publier l'événement de commande Confirmée
         applicationEventPublisher.publishEvent(
             OrderCompletedEvent(
                 customerUserName = updatedOrder.customerUserName,
                 orderId = updatedOrder.id!!,
-                orderAmount = updatedOrder.totalAmount
+                orderAmount = updatedOrder.totalAmount,
+                orderItems = updatedOrder.items
             )
         )
 
-        // Générer et envoyer la facture PDF par email
-        try {
-            logger.info("Generating and sending invoice PDF for order: {}", updatedOrder.orderNumber)
-            val payerFullName = captureResponse.payer.name.given_name + " " + captureResponse.payer.name.surname
-            val invoicePdf = invoicePdfService.generateInvoicePdf(updatedOrder, payerFullName)
-            emailService.sendOrderConfirmationEmail(updatedOrder, invoicePdf)
-            logger.info("Invoice PDF sent successfully for order: {}", updatedOrder.orderNumber)
-        } catch (e: Exception) {
-            logger.error("Failed to generate or send invoice PDF for order: {}", updatedOrder.orderNumber, e)
-        }
+        // Publier l'événement de génération de facture PDF et d'envoi par email
+        val payerFullName = captureResponse.payer.name.given_name + " " + captureResponse.payer.name.surname
+        applicationEventPublisher.publishEvent(
+            InvoiceGenerationRequestedEvent(
+                order = updatedOrder,
+                payerFullName = payerFullName,
+                payerEmail = captureResponse.payer.email_address
+            )
+        )
 
         auditService.logAction(
             userName = "SYSTEM",
@@ -339,6 +346,7 @@ class OrderService(
         }
         return cart
     }
+
     private fun generateUniqueOrderNumber(): String {
         return "ORD-${UUID.randomUUID()}"
     }
@@ -350,12 +358,104 @@ class OrderService(
                 product.promotionPrice < product.sellingPrice &&
                 (product.promotionEndDate == null || product.promotionEndDate > Instant.now())
     }
+
+    fun getDailySalesSummary(dailySalesRequestDto: DailySalesRequestDto): DailySalesResponseDto {
+        logger.debug("Calculating daily sales summary for date: {}", dailySalesRequestDto.date)
+        
+        val localDate = dailySalesRequestDto.date.atZone(java.time.ZoneOffset.UTC).toLocalDate()
+        val startOfDay = localDate.atStartOfDay(java.time.ZoneOffset.UTC).toInstant()
+        val endOfDay = localDate.plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant()
+
+        val query = Query().addCriteria(
+            where("createdAt").gte(startOfDay).lt(endOfDay)
+                .and("status").`in`(getValidSalesStatuses())
+        )
+
+        val orders = mongoTemplate.find(query, Order::class.java)
+        val totalSales = orders.sumOf { it.totalAmount }.setScale(2, RoundingMode.DOWN)
+        
+        logger.info("Daily sales summary for {}: {}€ from {} orders", localDate, totalSales, orders.size)
+        return DailySalesResponseDto(totalSales)
+    }
+
+    fun getTopSellingProducts(limit: Int = 5): List<TopSellingProductDto> {
+        logger.debug("Retrieving top {} selling products", limit)
+        
+        val orders = getValidatedOrders()
+        val productStats = aggregateProductStatistics(orders)
+        val topProducts = sortAndLimitProducts(productStats, limit)
+        
+        logger.info("Top {} selling products retrieved successfully", topProducts.size)
+        return topProducts
+    }
+    
+    private fun getValidatedOrders(): List<Order> {
+        val query = Query().addCriteria(
+            where("status").`in`(getValidSalesStatuses())
+        )
+        
+        val orders = mongoTemplate.find(query, Order::class.java)
+        logger.info("Found {} orders for top selling products analysis", orders.size)
+        return orders
+    }
+    
+    private fun getValidSalesStatuses() = listOf(
+            CONFIRMED, PROCESSING, SHIPPED,
+            DELIVERED, READY_FOR_PICKUP)
+    
+    private fun aggregateProductStatistics(orders: List<Order>): Map<String, TopSellingProductDto> {
+        val productStats = mutableMapOf<String, TopSellingProductDto>()
+        
+        orders.forEach { order ->
+            order.items.forEach { item ->
+                productStats[item.productId] = updateProductStats(productStats[item.productId], item)
+            }
+        }
+        
+        return productStats
+    }
+    
+    private fun updateProductStats(existing: TopSellingProductDto?, item: OrderItem): TopSellingProductDto {
+        return if (existing != null) {
+            updateExistingStats(existing, item)
+        } else {
+            createNewStats(item)
+        }
+    }
+    
+    private fun updateExistingStats(existing: TopSellingProductDto, item: OrderItem): TopSellingProductDto {
+        val currentRevenue = BigDecimal(existing.totalRevenue.replace("€", ""))
+        val newRevenue = currentRevenue.add(
+            item.productUnitPrice.multiply(BigDecimal(item.quantity))
+        ).setScale(2, RoundingMode.DOWN)
+        
+        return existing.copy(
+            totalQuantitySold = existing.totalQuantitySold + item.quantity,
+            totalRevenue = "${newRevenue}€",
+            numberOfOrders = existing.numberOfOrders + 1
+        )
+    }
+    
+    private fun createNewStats(item: OrderItem): TopSellingProductDto {
+        val revenue = item.productUnitPrice.multiply(BigDecimal(item.quantity))
+            .setScale(2, RoundingMode.DOWN)
+        
+        return TopSellingProductDto(
+            productId = item.productId,
+            productName = item.productName,
+            totalQuantitySold = item.quantity,
+            totalRevenue = "${revenue}€",
+            numberOfOrders = 1
+        )
+    }
+    
+    private fun sortAndLimitProducts(productStats: Map<String, TopSellingProductDto>, limit: Int): List<TopSellingProductDto> {
+        return productStats.values
+            .sortedByDescending { it.totalQuantitySold }
+            .take(limit)
+    }
 }
 
-/**
- * Extension function pour normaliser tous les montants BigDecimal d'une commande
- * à 2 décimales pour éviter les problèmes de précision avec MongoDB Decimal128
- */
 fun Order.normalizeAmounts(): Order {
     return this.copy(
         totalAmount = this.totalAmount.setScale(2, RoundingMode.DOWN),
@@ -365,7 +465,7 @@ fun Order.normalizeAmounts(): Order {
         items = this.items.map { item ->
             item.copy(
                 productUnitPrice = item.productUnitPrice.setScale(2, RoundingMode.DOWN),
-                productTaxRate = item.productTaxRate.setScale(4, RoundingMode.DOWN) // Les taux de TVA gardent plus de précision mais sans arrondi
+                productTaxRate = item.productTaxRate.setScale(4, RoundingMode.DOWN)
             )
         }
     )

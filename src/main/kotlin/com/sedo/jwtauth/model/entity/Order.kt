@@ -53,7 +53,7 @@ data class OrderItem(
 )
 
 enum class OrderStatus {
-    PENDING, //Commande créée mais pas encore payée (validaation panier)
+    PENDING, //Commande créée mais pas encore payée (validation panier)
     CONFIRMED, // paiement validé, commande à traité par le vendeur
     PROCESSING, //Le commerçant prépare la commande
     READY_FOR_PICKUP, //Dans le cas d’un Click & Collect

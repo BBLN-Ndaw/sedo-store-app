@@ -7,25 +7,27 @@ import com.sedo.jwtauth.model.entity.UserLoyalty
 import com.sedo.jwtauth.repository.UserLoyaltyRepository
 import org.slf4j.LoggerFactory
 import org.springframework.context.event.EventListener
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
 @Service
-class LoyaltyService(private val userLoyaltyRepository: UserLoyaltyRepository) {
+class LoyaltyNotificationListener(private val userLoyaltyRepository: UserLoyaltyRepository) {
 
-    private val logger = LoggerFactory.getLogger(LoyaltyService::class.java)
+    private val logger = LoggerFactory.getLogger(LoyaltyNotificationListener::class.java)
 
     /**
-     * Écoute les commandes terminées
+     * listen to order completed events to add loyalty points
      */
     @EventListener
+    @Async
     fun onOrderCompleted(event: OrderCompletedEvent) {
         addPointsForOrder(event.customerUserName, event.orderAmount)
         logger.info("✅ Points ajoutés pour commande ${event.orderId}")
     }
 
     /**
-     * Ajoute des points : 1 point pour 5€
+     * Add points based on order amount (1 point every 5 currency units)
      */
     private fun addPointsForOrder(customerUserName: String, orderAmount: BigDecimal) {
         val points = (orderAmount / BigDecimal(5)).toInt()
@@ -46,7 +48,7 @@ class LoyaltyService(private val userLoyaltyRepository: UserLoyaltyRepository) {
     }
 
     /**
-     * Récupère les infos de fidélité
+     * get loyalty program details for a user
      */
     fun getUserLoyalty(customerUserName: String): LoyaltyProgramDto {
         val loyalty = userLoyaltyRepository.findByCustomerUserName(customerUserName)
