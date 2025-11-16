@@ -322,29 +322,13 @@ class ProductService(
         return deletedProduct
     }
 
-    fun updateStock(productId: String, newQuantity: Int, reason: String): Product {
-        val currentUser = SecurityContextHolder.getContext().authentication.name
-        logger.info("Updating stock for product ID: {} to {} by user: {}", productId, newQuantity, currentUser)
-        
-        val existingProduct = getProductById(productId)
-        val oldQuantity = existingProduct.stockQuantity
-        
-        val updatedProduct = existingProduct.copy(stockQuantity = newQuantity)
-        
-        val savedProduct = productRepository.save(updatedProduct)
-        
-        auditService.logAction(
-            userName = currentUser,
-            action = "STOCK_UPDATE",
-            entityType = "Product",
-            entityId = savedProduct.id,
-            description = "Stock updated for ${savedProduct.name}: $oldQuantity -> $newQuantity ($reason)",
-            oldData = mapOf("stockQuantity" to oldQuantity.toString()),
-            newData = mapOf("stockQuantity" to newQuantity.toString(), "reason" to reason)
-        )
-        
-        logger.info("Stock updated successfully for product: {} (ID: {})", savedProduct.name, savedProduct.id)
-        return savedProduct
+    fun getLowStockProducts(): List<Product>{
+        logger.debug("Retrieving low stock products")
+        return productRepository.findLowStockProducts()
+    }
+
+    fun getProductsInStock(): Int {
+        return productRepository.findProductsInStock().map { it.isActive }.size
     }
 
     private fun extractProductImagePath(url: String): String? {

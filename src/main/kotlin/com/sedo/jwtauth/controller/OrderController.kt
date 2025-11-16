@@ -4,11 +4,13 @@ import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.model.dto.CartDto
+import com.sedo.jwtauth.model.dto.DailySalesResponseDto
+import com.sedo.jwtauth.model.dto.DailySalesRequestDto
 import com.sedo.jwtauth.model.dto.OrderDto
 import com.sedo.jwtauth.model.dto.OrderStatusUpdateRequest
 import com.sedo.jwtauth.model.dto.PaypalCapturedResponse
+import com.sedo.jwtauth.model.dto.TopSellingProductDto
 import com.sedo.jwtauth.model.entity.Order
-import com.sedo.jwtauth.model.entity.OrderStatus
 import com.sedo.jwtauth.service.OrderService
 import jakarta.validation.Valid
 import org.springframework.data.domain.Page
@@ -81,5 +83,17 @@ class OrderController(
     @GetMapping("/{id}")
     fun getOrderById(@PathVariable id: String): ResponseEntity<OrderDto> {
         return ResponseEntity.ok(orderService.getOrderById(id).toDto())
+    }
+    
+    @GetMapping("/analytics/top-selling")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun getTopSellingProducts(@RequestParam(defaultValue = "5") limit: Int): ResponseEntity<List<TopSellingProductDto>> {
+        return ResponseEntity.ok(orderService.getTopSellingProducts(limit))
+    }
+
+    @GetMapping("/analytics/daily-selling")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun getDailySalesSummary(@RequestParam dailySalesRequestDto: DailySalesRequestDto): ResponseEntity<DailySalesResponseDto> {
+        return ResponseEntity.ok(orderService.getDailySalesSummary(dailySalesRequestDto))
     }
 }

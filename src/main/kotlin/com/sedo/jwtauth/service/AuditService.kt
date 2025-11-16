@@ -46,14 +46,14 @@ class AuditService(
     }
     
     fun getAuditLogs(
-        userId: String? = null,
+        userName: String? = null,
         entityType: String? = null,
         entityId: String? = null,
         startDate: Instant? = null,
         endDate: Instant? = null
     ): List<AuditLog> {
         return when {
-            userId != null -> auditLogRepository.findByUserName(userId)
+            userName != null -> auditLogRepository.findByUserName(userName)
             entityType != null && entityId != null -> auditLogRepository.findByEntityTypeAndEntityId(entityType, entityId)
             startDate != null && endDate != null -> auditLogRepository.findByCreatedAtBetween(startDate, endDate)
             else -> auditLogRepository.findAll()

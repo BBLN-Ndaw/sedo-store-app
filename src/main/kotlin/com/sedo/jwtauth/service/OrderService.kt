@@ -16,6 +16,7 @@ import com.sedo.jwtauth.model.dto.PaypalCapturedResponse
 import com.sedo.jwtauth.model.dto.TopSellingProductDto
 import com.sedo.jwtauth.model.entity.Order
 import com.sedo.jwtauth.model.entity.OrderItem
+import com.sedo.jwtauth.model.entity.OrderStatus
 import com.sedo.jwtauth.model.entity.OrderStatus.CANCELLED
 import com.sedo.jwtauth.model.entity.OrderStatus.CONFIRMED
 import com.sedo.jwtauth.model.entity.OrderStatus.DELIVERED
@@ -68,6 +69,18 @@ class OrderService(
 
         logger.info("Number of products found: {}", total)
         return PageImpl(orders, pageable, total)
+    }
+
+    fun getAllOrderInProcessingStatus(): List<Order> {
+        logger.debug("Retrieving all orders in PROCESSING status")
+        val processingOrdersStatus = listOf(
+                CONFIRMED, PROCESSING, READY_FOR_PICKUP)
+        return orderRepository.findByStatusInOrderByCreatedAtDesc(processingOrdersStatus)
+    }
+
+    fun getOrderByStatus(ordersStatus: List<OrderStatus>): List<Order> {
+        logger.debug("Retrieving all orders with status: {}", ordersStatus)
+        return orderRepository.findByStatusInOrderByCreatedAtDesc(ordersStatus)
     }
 
     fun searchOrders(search: String?, status: String?, period: String?, page: Int, size: Int): Page<Order> {
@@ -157,7 +170,7 @@ class OrderService(
             items = validatedCart.items.map {
                 it.toOrderItem()
             },
-            processedByUser = currentUser,
+            processedByUser = "SYSTEM",
             paymentMethod = PaymentMethod.PAYPAL,
             paymentStatus = PaymentStatus.PENDING,
         ).normalizeAmounts()
@@ -194,6 +207,7 @@ class OrderService(
         val updatedOrder = order.copy(
             customerEmail = captureResponse.payer.email_address,
             status = CONFIRMED,
+            processedByUser = "SYSTEM",
             shippingAddress = Address(
                 street = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.address_line_1 ?: "N/A",
                 city = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.admin_area_2 ?: "N/A",
@@ -259,7 +273,7 @@ class OrderService(
         
         val existingOrder = getOrderById(orderId)
         val oldStatus = existingOrder.status
-        val updatedOrder =  existingOrder.copy(status = newOrderStatus.orderStatus).normalizeAmounts()
+        val updatedOrder =  existingOrder.copy(status = newOrderStatus.orderStatus, processedByUser = currentUser).normalizeAmounts()
         
         val savedOrder = orderRepository.save(updatedOrder)
         
@@ -283,7 +297,7 @@ class OrderService(
 
         val existingOrder = getOrderById(orderId)
         val oldStatus = existingOrder.status
-        val updatedOrder =  existingOrder.copy(status = CANCELLED).normalizeAmounts()
+        val updatedOrder =  existingOrder.copy(status = CANCELLED, processedByUser = "CUSTOMER: $currentUser").normalizeAmounts()
         val savedOrder = orderRepository.save(updatedOrder)
 
         auditService.logAction(
@@ -367,8 +381,10 @@ class OrderService(
         val endOfDay = localDate.plusDays(1).atStartOfDay(java.time.ZoneOffset.UTC).toInstant()
 
         val query = Query().addCriteria(
-            where("createdAt").gte(startOfDay).lt(endOfDay)
-                .and("status").`in`(getValidSalesStatuses())
+                Criteria().orOperator(
+                        Criteria("updatedAt").gte(startOfDay).lt(endOfDay),
+                        Criteria("createdAt").gte(startOfDay).lt(endOfDay))
+                .and("status").`in`(getSalesStatuses())
         )
 
         val orders = mongoTemplate.find(query, Order::class.java)
@@ -376,6 +392,19 @@ class OrderService(
         
         logger.info("Daily sales summary for {}: {}€ from {} orders", localDate, totalSales, orders.size)
         return DailySalesResponseDto(totalSales)
+    }
+
+    fun getMonthlyCancelledOrdersCount(startDate: Instant, endDate: Instant): Int {
+        logger.debug("Calculating monthly cancelled orders count from {} to {}", startDate, endDate)
+        val query = Query()
+                .addCriteria(
+                        Criteria().orOperator(
+                                Criteria("updatedAt").gte(startDate).lt(endDate),
+                                Criteria("createdAt").gte(startDate).lt(endDate))
+                                .and("status").`is`(CANCELLED)
+                )
+
+        return mongoTemplate.count(query, Order::class.java).toInt()
     }
 
     fun getTopSellingProducts(limit: Int = 5): List<TopSellingProductDto> {
@@ -391,7 +420,7 @@ class OrderService(
     
     private fun getValidatedOrders(): List<Order> {
         val query = Query().addCriteria(
-            where("status").`in`(getValidSalesStatuses())
+            where("status").`in`(getSalesStatuses())
         )
         
         val orders = mongoTemplate.find(query, Order::class.java)
@@ -399,7 +428,7 @@ class OrderService(
         return orders
     }
     
-    private fun getValidSalesStatuses() = listOf(
+    private fun getSalesStatuses() = listOf(
             CONFIRMED, PROCESSING, SHIPPED,
             DELIVERED, READY_FOR_PICKUP)
     
@@ -453,6 +482,33 @@ class OrderService(
         return productStats.values
             .sortedByDescending { it.totalQuantitySold }
             .take(limit)
+    }
+
+    fun getMonthlyRevenue(startDate: Instant, endDate: Instant): BigDecimal {
+        val query = Query()
+                .addCriteria(
+                        Criteria().orOperator(
+                                Criteria("updatedAt").gte(startDate).lt(endDate),
+                                Criteria("createdAt").gte(startDate).lt(endDate))
+                                .and("status").`in`(getSalesStatuses())
+                )
+
+        val orders = mongoTemplate.find(query, Order::class.java)
+        return orders.sumOf { it.totalAmount }.setScale(2, RoundingMode.DOWN)
+    }
+
+    fun getAverageOrderValue(): BigDecimal {
+        val query = Query()
+                .addCriteria(Criteria.where("status").`in`(getSalesStatuses()))
+
+        val orders = mongoTemplate.find(query, Order::class.java)
+
+        if (orders.isEmpty()) {
+            return BigDecimal.ZERO
+        }
+
+        val totalRevenue = orders.sumOf { it.totalAmount }
+        return totalRevenue.divide(BigDecimal(orders.size), 2, RoundingMode.DOWN)
     }
 }
 

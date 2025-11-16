@@ -21,6 +21,7 @@ object Constants {
         const val PRODUCTS = "$API/products"
         const val SUPPLIERS = "$API/suppliers"
         const val PRODUCT_WITH_CATEGORY = "/product-with-category"
+        const val DASHBOARD = "$API/dashboard"
     }
     
     object Roles {

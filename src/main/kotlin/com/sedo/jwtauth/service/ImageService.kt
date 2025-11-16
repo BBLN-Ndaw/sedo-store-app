@@ -115,11 +115,6 @@ class ImageService(
         return "products/$sanitizedProductName/${sanitizedOriginalFilename}_${timestamp}_${uuid}.$extension"
     }
 
-    private fun extractFileNameFromUrl(imageUrl: String): String {
-        val url = java.net.URL(imageUrl)
-        return url.path.substringAfter("/${minioProperties.bucketName}/")
-    }
-
     fun generatePresignedUrl(fileName: String, expiryHours: Int = 24): String {
         return try {
             minioClient.getPresignedObjectUrl(

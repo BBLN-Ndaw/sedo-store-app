@@ -96,6 +96,12 @@ class ProductController(
         return ResponseEntity.ok(productService.updateProductStatus(id, action).toDto())
     }
 
+    @GetMapping("/low-stock")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun getLowStockProducts(): ResponseEntity<List<ProductDto>> {
+        return ResponseEntity.ok(productService.getLowStockProducts().map { it.toDto() })
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun getDeletedProducts( @PathVariable id: String): ResponseEntity<ProductDto> {
