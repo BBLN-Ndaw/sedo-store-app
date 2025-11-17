@@ -1,6 +1,7 @@
 package com.sedo.jwtauth.controller
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.API
+import com.sedo.jwtauth.constants.Constants.Endpoints.DASHBOARD
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.model.dto.DashboardNotificationDto
@@ -13,18 +14,39 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * Contrôleur pour les statistiques du tableau de bord
+ * REST Controller for dashboard analytics and real-time monitoring.
+ *
+ * This controller provides comprehensive dashboard functionality for the store
+ * management system, including business statistics, key performance indicators (KPIs),
+ * and real-time notifications for administrative users.
+ *
+ * The dashboard serves as the central monitoring hub for business operations,
+ * providing insights into sales, inventory, customer activity, and system health.
+ *
+ * @property dashboardService Service layer for dashboard data aggregation and analytics
+ *
+ * @author Store Management System
+ * @since 1.0
  */
 @RestController
-@RequestMapping("$API/dashboard")
+@RequestMapping(DASHBOARD)
 class DashboardController(
     private val dashboardService: DashboardService,
 ) {
     
     /**
-     * Endpoint to recover dashboard statistics
-     * 
-     * @return ResponseEntity containing the dashboard statistics
+     * Retrieves comprehensive dashboard statistics and key performance indicators.
+     *
+     * This endpoint provides aggregated business metrics including:
+     * - Total sales and revenue figures
+     * - Product inventory levels
+     * - Customer activity metrics
+     * - Order processing statistics
+     * - Performance trends and comparisons
+     *
+     * @return ResponseEntity containing StatDto with comprehensive dashboard metrics
+     *
+     * Security: Requires ADMIN or EMPLOYEE role for access to business analytics
      */
     @GetMapping("/statistics")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
@@ -34,9 +56,21 @@ class DashboardController(
     }
     
     /**
-     * Endpoint to recover recent dashboard notifications
-     * 
-     * @return ResponseEntity containing the list of dashboard notifications
+     * Retrieves real-time dashboard notifications and alerts.
+     *
+     * This endpoint provides up-to-date notifications about:
+     * - Low inventory warnings
+     * - Pending order alerts
+     * - System status notifications
+     * - Customer service requests
+     * - Performance anomalies
+     *
+     * Notifications are dynamically generated based on current system state
+     * and configured business rules.
+     *
+     * @return ResponseEntity containing list of DashboardNotificationDto objects
+     *
+     * Security: Requires ADMIN or EMPLOYEE role for access to system notifications
      */
     @GetMapping("/notifications")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")

@@ -7,7 +7,6 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing
 @SpringBootApplication
 @EnableMongoAuditing
 class JwtAuthApplication
-
 fun main(args: Array<String>) {
     runApplication<JwtAuthApplication>(*args)
 }

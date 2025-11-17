@@ -20,6 +20,60 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import kotlin.collections.forEach
 
+/**
+ * Service class responsible for generating dashboard analytics and business intelligence in the Store Management System.
+ * 
+ * This service provides comprehensive dashboard functionality including:
+ * - Real-time business metrics and KPIs
+ * - Financial reporting and revenue analytics
+ * - Order processing statistics
+ * - Inventory and product analytics
+ * - Notification management for important business events
+ * - Time-series data for trend analysis
+ * 
+ * Business Intelligence Features:
+ * - Daily sales summaries and trends
+ * - Monthly revenue tracking and comparisons
+ * - Order status distribution and processing metrics
+ * - Product inventory and stock level monitoring
+ * - Customer behavior and ordering patterns
+ * - Financial performance indicators
+ * 
+ * Dashboard Metrics:
+ * - Daily Sales: Current day's sales performance
+ * - Processing Orders: Orders currently being processed
+ * - Products in Stock: Available inventory levels
+ * - Monthly Revenue: Current month's revenue performance
+ * - Average Order Value: Customer spending patterns
+ * - Cancelled Orders: Order cancellation tracking
+ * - Revenue Trends: Year-over-year revenue analysis
+ * 
+ * Notification System:
+ * - Low stock alerts for inventory management
+ * - High order volume notifications
+ * - Revenue milestone achievements
+ * - System performance indicators
+ * - Business trend alerts
+ * 
+ * Analytics and Reporting:
+ * - Real-time data aggregation from multiple services
+ * - Time-based filtering and date range analysis
+ * - MongoDB aggregation for efficient data processing
+ * - Statistical calculations for business insights
+ * - Trend analysis for decision-making support
+ * 
+ * Integration Points:
+ * - OrderService for order-related metrics
+ * - ProductService for inventory analytics
+ * - MongoDB aggregation for complex queries
+ * - Real-time data processing for live dashboards
+ * 
+ * Dependencies:
+ * - OrderService for order data and calculations
+ * - ProductService for product and inventory information
+ * - MongoTemplate for advanced aggregation queries
+ *
+ */
 @Service
 class DashboardService(
     private val orderService: OrderService,
@@ -30,7 +84,28 @@ class DashboardService(
     private val logger = LoggerFactory.getLogger(DashboardService::class.java)
     
     /**
-     * get dashboard statistics
+     * Generates comprehensive dashboard statistics for business intelligence.
+     * 
+     * This method aggregates data from multiple sources to provide a complete
+     * business overview including sales performance, order processing status,
+     * inventory levels, and financial metrics.
+     * 
+     * Metrics Calculated:
+     * - Daily sales performance for current day
+     * - Number of orders currently in processing
+     * - Current product inventory levels
+     * - Monthly revenue for current period
+     * - Revenue trends for the current year
+     * - Average order value across all orders
+     * - Monthly cancelled order statistics
+     * 
+     * Data Processing:
+     * - Real-time aggregation from order and product services
+     * - Time-based calculations for current month
+     * - Year-to-date revenue analysis
+     * - Statistical analysis for business insights
+     * 
+     * @return StatDto containing comprehensive dashboard statistics
      */
     fun getDashboardStatistics(): StatDto {
         logger.debug("Generating dashboard statistics")

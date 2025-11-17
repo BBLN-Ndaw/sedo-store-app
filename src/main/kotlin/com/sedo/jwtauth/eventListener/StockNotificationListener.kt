@@ -5,6 +5,10 @@ import com.sedo.jwtauth.repository.ProductRepository
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 
+/**
+ * Listener for stock notifications.
+ * Updates product stock quantities when an order is completed.
+ */
 @Service
 class StockNotificationListener(val productRepository: ProductRepository) {
     /**

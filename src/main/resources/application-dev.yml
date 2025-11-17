@@ -18,8 +18,3 @@ app:
     access-key: minioadmin
     secret-key: minioadmin123
     bucket-name: product-images
-
-#jwt:
-#  secret: myDefaultSecretKeyForJwtTokenGeneration1234567890
-#  access-token-expiration: 1_000
-#  refresh-token-expiration: 2_000

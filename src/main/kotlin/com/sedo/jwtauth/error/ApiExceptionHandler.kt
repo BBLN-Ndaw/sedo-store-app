@@ -21,8 +21,26 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.servlet.NoHandlerFoundException
 
 /**
- * Global exception handler for the application
- * Handles all exceptions and converts them to appropriate HTTP responses
+ * Global exception handler for the Store Management System API.
+ *
+ * This class provides centralized exception handling for the entire application using
+ * Spring's @RestControllerAdvice. It catches various types of exceptions and converts
+ * them into appropriate HTTP responses with structured error information.
+ *
+ * Features:
+ * - Handles authentication and authorization exceptions
+ * - Manages business logic exceptions
+ * - Processes validation errors with detailed field information
+ * - Converts technical exceptions to user-friendly error messages
+ * - Logs errors for debugging and monitoring
+ * - Provides consistent error response format across the API
+ *
+ * Exception Categories:
+ * - Authentication & Authorization (401, 403)
+ * - Business Logic Exceptions (400, 404, 409)
+ * - Validation Errors (400 with field details)
+ * - HTTP and Generic Exceptions (500)
+ *
  */
 @RestControllerAdvice
 class ApiExceptionHandler {
@@ -33,6 +51,13 @@ class ApiExceptionHandler {
     // Authentication & Authorization Exceptions
     // ================================
 
+    /**
+     * Handles UserNotFoundException when a user is not found in the system.
+     *
+     * @param ex The UserNotFoundException that was thrown
+     * @param request The HTTP request that caused the exception
+     * @return ResponseEntity with 404 status and error details
+     */
     @ExceptionHandler(UserNotFoundException::class)
     fun handleUserNotFoundException(
         ex: UserNotFoundException,

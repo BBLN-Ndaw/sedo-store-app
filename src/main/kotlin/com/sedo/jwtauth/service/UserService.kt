@@ -24,6 +24,20 @@ import org.springframework.stereotype.Service
 import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 
+/**
+ * Service class for managing user-related business logic.
+ *
+ * This service handles all user operations including user creation, updates,
+ * password management, user search with filtering, status management,
+ * and password reset functionality via email.
+ *
+ * @property userRepository Repository for user data access
+ * @property mongoTemplate MongoDB template for custom queries
+ * @property passwordEncoder Encoder for password security
+ * @property emailService Service for sending emails
+ * @property passwordResetTokenService Service for managing password reset tokens
+ *
+ */
 @Service
 class UserService @Autowired constructor(
     private val userRepository: UserRepository,
@@ -37,6 +51,16 @@ class UserService @Autowired constructor(
     @Value("\${app.frontend.url:http://localhost:4200}")
     private lateinit var frontendUrl: String
 
+    /**
+     * Searches users with optional filtering criteria.
+     *
+     * @param search Optional search term to match against user fields (username, firstName, lastName, email)
+     * @param isActive Optional filter by user active status
+     * @param hasOrders Optional filter by users who have placed orders
+     * @param page Page number for pagination (0-based)
+     * @param size Number of items per page
+     * @return Page containing filtered users
+     */
     fun searchUsers(search: String?, isActive: String?, hasOrders: String?,
                     page: Int, size: Int): Page<User> {
         logger.debug("Retrieving users with filters - search: {}, isActive: {}, hasOrders: {}, page: {}, size: {}",

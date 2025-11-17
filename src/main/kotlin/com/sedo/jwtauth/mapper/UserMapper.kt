@@ -3,6 +3,14 @@ package com.sedo.jwtauth.mapper
 import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.model.entity.User
 
+/**
+ * Extension function to convert User entity to UserDto.
+ *
+ * Maps database entity to data transfer object for API responses,
+ * excluding sensitive information like passwords for security.
+ *
+ * @return UserDto containing safe user information for API responses
+ */
 fun User.toDto(): UserDto = UserDto(
     id = this.id,
     userName = this.userName,

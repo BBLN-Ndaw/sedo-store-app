@@ -21,6 +21,20 @@ import java.net.URLDecoder
 import java.time.LocalDateTime.ofInstant
 import java.time.ZoneId.systemDefault
 
+/**
+ * Service class for managing product-related business logic.
+ *
+ * This service handles all product operations including CRUD operations,
+ * inventory management, product search with advanced filtering, stock level monitoring,
+ * and integration with categories and image management.
+ *
+ * @property productRepository Repository for product data access
+ * @property auditService Service for logging product operations
+ * @property imageService Service for managing product images
+ * @property categoryService Service for category operations
+ * @property mongoTemplate MongoDB template for custom queries
+ *
+ */
 @Service
 class ProductService(
     private val productRepository: ProductRepository,
@@ -32,11 +46,21 @@ class ProductService(
     
     private val logger = LoggerFactory.getLogger(ProductService::class.java)
     
+    /**
+     * Retrieves all products from the inventory.
+     *
+     * @return List of all products in the system
+     */
     fun getAllProducts(): List<Product> {
         logger.debug("Retrieving all products")
         return productRepository.findAll()
     }
 
+    /**
+     * Retrieves all products with their associated category information.
+     *
+     * @return List of products with complete category details
+     */
     fun getAllProductsWithCategories(): List<ProductWithCategoryDto> {
         val products = getAllProducts()
         val categoryIds = products.map { it.categoryId }.toSet()

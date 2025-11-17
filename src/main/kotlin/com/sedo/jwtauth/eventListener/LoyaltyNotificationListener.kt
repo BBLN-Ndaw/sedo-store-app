@@ -11,6 +11,9 @@ import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 
+/**
+ * Listener for loyalty program related events
+ */
 @Service
 class LoyaltyNotificationListener(private val userLoyaltyRepository: UserLoyaltyRepository) {
 

@@ -17,12 +17,32 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
+/**
+ * REST Controller for user management operations.
+ *
+ * This controller handles CRUD operations for users, including user search,
+ * profile management, password updates, and user status management.
+ * Most operations require ADMIN or EMPLOYEE roles for security.
+ *
+ * @property userService Service for handling user business logic
+ *
+ */
 @RestController
 @RequestMapping(USER)
 class UserController @Autowired constructor(
     private val userService: UserService
 ) {
 
+    /**
+     * Searches users with optional filtering criteria.
+     *
+     * @param search Optional search term for user fields
+     * @param isActive Optional filter by active status
+     * @param hasOrders Optional filter by users with orders
+     * @param page Page number for pagination (default: 0)
+     * @param size Number of items per page (default: 20)
+     * @return ResponseEntity containing paginated list of users
+     */
     @GetMapping
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun searchUsers(@RequestParam(required = false) search: String?,
@@ -35,6 +55,12 @@ class UserController @Autowired constructor(
             .let { ResponseEntity.ok(it) }
     }
 
+    /**
+     * Creates a new user in the system.
+     *
+     * @param createUserDto User data for creation
+     * @return ResponseEntity containing the created user
+     */
     @PostMapping
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun createUser(@Valid @RequestBody createUserDto: UserDto): ResponseEntity<UserDto> {
@@ -43,6 +69,12 @@ class UserController @Autowired constructor(
             .let { ResponseEntity.status(HttpStatus.CREATED).body(it) }
     }
 
+    /**
+     * Retrieves the current user's profile information.
+     *
+     * @param authentication Current user's authentication context
+     * @return ResponseEntity containing user profile data
+     */
     @GetMapping("/profile")
     fun getUserProfile(authentication: Authentication): ResponseEntity<UserDto> {
         return userService.getUserByUsername(authentication.name)
@@ -50,6 +82,12 @@ class UserController @Autowired constructor(
             .let { ResponseEntity.ok(it) }
     }
 
+    /**
+     * Retrieves a specific user by their ID.
+     *
+     * @param id User ID to retrieve
+     * @return ResponseEntity containing the user data
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun getUserById(@PathVariable id: String): ResponseEntity<UserDto> {
@@ -58,6 +96,13 @@ class UserController @Autowired constructor(
             .let { ResponseEntity.ok(it) }
     }
 
+    /**
+     * Updates a user's active status (activate/deactivate).
+     *
+     * @param id User ID to update
+     * @param action Action DTO containing the new status
+     * @return ResponseEntity containing the updated user
+     */
     @PutMapping("/status/{id}")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun updateUserStatus(@PathVariable id: String, @RequestBody action: ActionDto): ResponseEntity<UserDto> {
@@ -65,6 +110,13 @@ class UserController @Autowired constructor(
             .toDto().let { ResponseEntity.ok(it) }
     }
 
+    /**
+     * Updates user information.
+     *
+     * @param id User ID to update
+     * @param updateRequest Updated user data
+     * @return ResponseEntity containing the updated user
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun updateUser(
@@ -83,6 +135,13 @@ class UserController @Autowired constructor(
         ).toDto().let { ResponseEntity.ok(it) }
     }
 
+    /**
+     * Updates a user's password.
+     *
+     * @param id User ID whose password to update
+     * @param passwordUpdate DTO containing current and new password
+     * @return ResponseEntity containing password update confirmation
+     */
     @PutMapping("/{id}/password")
     fun updateUserPassword(
         @PathVariable id: String,
@@ -92,6 +151,12 @@ class UserController @Autowired constructor(
             .let { ResponseEntity.ok(it) }
     }
 
+    /**
+     * Deletes a user from the system.
+     *
+     * @param id User ID to delete
+     * @return ResponseEntity containing the deleted user data
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun deleteUser(@PathVariable id: String): ResponseEntity<UserDto> {

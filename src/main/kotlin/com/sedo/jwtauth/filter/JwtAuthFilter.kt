@@ -19,6 +19,27 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
+/**
+ * JWT Authentication Filter for Spring Security.
+ *
+ * This filter intercepts all HTTP requests and performs JWT token validation
+ * for protected endpoints. It extracts and validates JWT tokens from the
+ * Authorization header and establishes the security context for authenticated users.
+ *
+ * Features:
+ * - Automatic JWT token extraction from Authorization header
+ * - Token validation and expiration checking
+ * - User authentication context establishment
+ * - Public endpoint bypass (login, logout, token refresh, etc.)
+ * - Integration with Spring Security authentication chain
+ *
+ * The filter runs once per request and sets up the SecurityContext with
+ * authenticated user details and authorities for downstream security checks.
+ *
+ * @property userDetailsService Service for loading user details
+ * @property jwtUtil Utility for JWT token operations
+ *
+ */
 @Component
 class JwtAuthFilter(
     private val userDetailsService: UserDetailsService,
@@ -27,6 +48,17 @@ class JwtAuthFilter(
 
     private val logger = getLogger(JwtAuthFilter::class.java)
 
+    /**
+     * Main filter logic that processes each HTTP request for JWT authentication.
+     *
+     * This method extracts JWT tokens from the Authorization header, validates them,
+     * and establishes the security context for authenticated users. Public endpoints
+     * are bypassed without authentication checks.
+     *
+     * @param request The HTTP servlet request
+     * @param response The HTTP servlet response
+     * @param filterChain The filter chain to continue processing
+     */
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,

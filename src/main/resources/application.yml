@@ -25,13 +25,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
-# JWT configuration
-#jwt:
-#  secret: myDefaultSecretKeyForJwtTokenGeneration1234567890
-#  access-token-expiration: 1_000
-#  refresh-token-expiration: 2_000
-
 # Application configuration
 app:
   store:

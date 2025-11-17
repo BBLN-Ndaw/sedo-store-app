@@ -11,6 +11,32 @@ import org.springframework.stereotype.Service
 import com.sedo.jwtauth.model.entity.Order
 import java.nio.charset.StandardCharsets
 
+/**
+ * Service class responsible for email communication in the Store Management System.
+ * 
+ * This service handles all email operations including:
+ * - Password creation notifications for new users
+ * - Order confirmation emails with invoice attachments
+ * - Transactional email communications
+ * - Email template generation and formatting
+ * 
+ * Business Logic:
+ * - All emails are sent in French as per business requirements
+ * - Password creation emails include secure token links
+ * - Order confirmation emails include PDF invoice attachments
+ * - Email sending failures are logged and exceptions are thrown
+ * 
+ * Integration Points:
+ * - Spring Mail framework for email delivery
+ * - Configuration-based email addresses and URLs
+ * - Order and user management systems
+ * - PDF invoice generation service
+ * 
+ * Dependencies:
+ * - JavaMailSender: Spring's email sending abstraction
+ * - Configuration properties for email addresses and URLs
+ *
+ */
 @Service
 class EmailService @Autowired constructor(
     private val mailSender: JavaMailSender
@@ -24,6 +50,25 @@ class EmailService @Autowired constructor(
     @Value("\${app.backend.url:http://localhost:8080}")
     private lateinit var backendUrl: String
 
+    /**
+     * Sends a password creation email to a newly created user.
+     * 
+     * This method is used when an administrator creates a new user account.
+     * The email contains a secure token link that allows the user to set their initial password.
+     * 
+     * Business Process:
+     * 1. Generates a personalized email with user information
+     * 2. Includes a secure token-based URL for password setup
+     * 3. Token has a 24-hour expiration for security
+     * 4. Email is sent in French as per business requirements
+     * 
+     * @param email The recipient's email address
+     * @param firstName The user's first name for personalization
+     * @param lastName The user's last name for personalization
+     * @param userName The assigned username (for reference)
+     * @param token The secure token for password setup validation
+     * @throws RuntimeException if email sending fails
+     */
     fun sendPasswordCreationEmail(email: String, firstName: String, lastName: String, userName: String, token: String) {
         logger.info("Sending password creation email to: {}", email)
 
@@ -44,6 +89,23 @@ class EmailService @Autowired constructor(
         }
     }
 
+    /**
+     * Sends an order confirmation email with invoice attachment.
+     * 
+     * This method is triggered after successful order payment processing.
+     * The email provides complete order details and includes a PDF invoice attachment.
+     * 
+     * Business Process:
+     * 1. Creates a detailed order summary email
+     * 2. Includes all order items with pricing
+     * 3. Shows shipping address and delivery information
+     * 4. Attaches PDF invoice for record keeping
+     * 5. Provides customer service contact information
+     * 
+     * @param order The completed Order entity containing all order details
+     * @param invoicePdf The generated PDF invoice as byte array
+     * @throws RuntimeException if email sending fails
+     */
     fun sendOrderConfirmationEmail(order: Order, invoicePdf: ByteArray) {
         logger.info("Sending order confirmation email to: {} for order: {}", order.customerEmail, order.orderNumber)
 

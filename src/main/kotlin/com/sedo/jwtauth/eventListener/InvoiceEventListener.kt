@@ -9,6 +9,9 @@ import org.springframework.stereotype.Service
 
 /**
  * listener responsible for handling invoice generation events
+ * and sending invoice PDFs via email
+ * @param invoicePdfService Service for generating invoice PDFs
+ * @param emailService Service for sending emails
  */
 @Service
 class InvoiceEventListener(
@@ -19,7 +22,7 @@ class InvoiceEventListener(
     private val logger = LoggerFactory.getLogger(InvoiceEventListener::class.java)
 
     /**
-     * Listen to invoice generation requests
+     * Listener to invoice generation requests
      */
     @EventListener
     fun onInvoiceGenerationRequested(event: InvoiceGenerationRequestedEvent) {

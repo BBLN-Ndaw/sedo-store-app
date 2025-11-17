@@ -3,7 +3,12 @@ package com.sedo.jwtauth.constants
 import java.math.BigDecimal
 
 /**
- * Application constants
+ * Application-wide constants for the Store Management System.
+ *
+ * This object contains all constant values used throughout the application
+ * including API endpoints, user roles, cookie configurations, and business rules.
+ * Centralizing constants improves maintainability and consistency.
+ *
  */
 object Constants {
     

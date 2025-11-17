@@ -5,6 +5,26 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 import java.time.Instant
 
+/**
+ * Data Transfer Object for user information.
+ *
+ * This DTO represents user data for API operations including creation,
+ * updates, and responses. It includes validation constraints to ensure
+ * data integrity and proper formatting.
+ *
+ * @property id Unique identifier for the user (auto-generated)
+ * @property userName Unique username for login (3-50 characters)
+ * @property firstName User's first name (2-50 characters)
+ * @property lastName User's last name (2-50 characters)
+ * @property email Valid email address (max 100 characters)
+ * @property address User's physical address information
+ * @property numTel Optional phone number
+ * @property isActive Whether the user account is active
+ * @property roles List of user roles (at least one required, defaults to CLIENT)
+ * @property createdAt Timestamp when the user was created
+ *
+ */
+
 data class UserDto(
     val id: String? = null,
     @field:NotBlank(message = "Username is required")
@@ -36,6 +56,14 @@ data class UserDto(
     val createdAt: Instant? = null,
 )
 
+/**
+ * Data class representing a user's physical address.
+ *
+ * @property street Street address line
+ * @property city City name
+ * @property postalCode Postal/ZIP code
+ * @property country Country name (defaults to France)
+ */
 data class Address(
     val street: String,
     val city: String,

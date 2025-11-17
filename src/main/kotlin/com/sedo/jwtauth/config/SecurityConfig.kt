@@ -25,7 +25,23 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.servlet.config.annotation.CorsRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
-
+/**
+ * Security configuration class for the Store Management System.
+ *
+ * This configuration class sets up Spring Security with JWT authentication,
+ * CORS configuration, and endpoint security rules. It defines which endpoints
+ * require authentication and configures the JWT authentication filter.
+ *
+ * Features:
+ * - JWT-based authentication
+ * - CORS configuration for frontend integration
+ * - Role-based access control
+ * - Public endpoint definitions
+ * - Password encoding configuration
+ *
+ * @property jwtAuthFilter Custom JWT authentication filter
+ *
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -33,6 +49,14 @@ class SecurityConfig(
     private val jwtAuthFilter: JwtAuthFilter
 ) {
     
+    /**
+     * Configures CORS (Cross-Origin Resource Sharing) settings.
+     *
+     * Allows the frontend application running on localhost:4200 to make
+     * cross-origin requests to the backend API with credentials.
+     *
+     * @return WebMvcConfigurer with CORS configuration
+     */
     @Bean
     fun corsConfigurer(): WebMvcConfigurer {
         return object : WebMvcConfigurer {

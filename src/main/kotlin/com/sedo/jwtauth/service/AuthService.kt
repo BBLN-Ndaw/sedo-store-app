@@ -17,6 +17,19 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 
+/**
+ * Service class for handling authentication operations.
+ *
+ * This service manages user authentication, JWT token generation and validation,
+ * refresh token operations, and user logout functionality. It integrates with
+ * the JWT utility and refresh token service to provide secure authentication.
+ *
+ * @property userRepository Repository for user data access
+ * @property refreshTokenService Service for managing refresh tokens
+ * @property jwtUtil Utility for JWT token operations
+ * @property passwordEncoder Encoder for password verification
+ *
+ */
 @Service
 class AuthService @Autowired constructor(
     private val userRepository: UserRepository,
@@ -27,6 +40,18 @@ class AuthService @Autowired constructor(
     
     private val logger = getLogger(AuthService::class.java)
 
+    /**
+     * Authenticates a user with username and password.
+     *
+     * Verifies user credentials and generates JWT tokens upon successful authentication.
+     * Sets refresh token as HTTP-only cookie for security.
+     *
+     * @param user Login credentials containing username and password
+     * @param response HTTP response for setting cookies
+     * @return LoginResponseDto containing access token and user information
+     * @throws InvalidCredentialsException if password is incorrect
+     * @throws UserNotFoundException if user doesn't exist
+     */
     fun authenticate(user: LoginUserDto, response: HttpServletResponse): LoginResponseDto {
         logger.info("Authentication attempt for user: {}", user.username)
 
@@ -40,6 +65,17 @@ class AuthService @Autowired constructor(
         return issueTokens(retrievedUser, response)
     }
 
+    /**
+     * Refreshes JWT access token using a valid refresh token.
+     *
+     * Validates the provided refresh token and issues new JWT tokens if valid.
+     * Invalidates the old refresh token for security.
+     *
+     * @param refreshToken The refresh token to validate
+     * @param response HTTP response for setting new cookies
+     * @return LoginResponseDto containing new access token and user information
+     * @throws RefreshTokenFailedException if refresh token is invalid or expired
+     */
     fun refreshToken(refreshToken: String, response: HttpServletResponse): LoginResponseDto {
         return if(refreshTokenService.isValidateToken(refreshToken)) {
             val userName = jwtUtil.validateToken(refreshToken)

@@ -9,6 +9,35 @@ import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 
+/**
+ * User entity representing system users in the Store Management System.
+ *
+ * This entity stores user information including authentication credentials,
+ * personal details, and role-based access control information. It supports
+ * the complete user lifecycle from registration to deletion.
+ *
+ * Features:
+ * - Unique username and email constraints
+ * - Role-based access control (ADMIN, EMPLOYEE, CLIENT)
+ * - Account activation/deactivation
+ * - Audit timestamps for creation and modification
+ * - MongoDB indexing for performance optimization
+ *
+ * @property id Unique identifier (MongoDB ObjectId)
+ * @property userName Unique username for authentication
+ * @property password Encrypted password using BCrypt
+ * @property email Indexed email address for user identification
+ * @property firstName User's first name (indexed for search)
+ * @property lastName User's last name (indexed for search)
+ * @property address Physical address information
+ * @property numTel Optional phone number
+ * @property isActive Account status (active/inactive)
+ * @property roles List of user roles for authorization
+ * @property createdAt Timestamp when user was created
+ * @property updatedAt Timestamp when user was last modified
+ * @property version Optimistic locking version field
+ *
+ */
 @Document(collection = "users")
 data class User(
     @Id

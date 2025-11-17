@@ -16,6 +16,43 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+/**
+ * Service class responsible for generating PDF invoices for completed orders.
+ * 
+ * This service provides comprehensive invoice generation functionality including:
+ * - Professional PDF invoice creation using iText library
+ * - Complete order information formatting
+ * - Customer and billing address details
+ * - Itemized product listings with pricing
+ * - Tax calculations and totals
+ * - French language formatting for business requirements
+ * 
+ * Business Logic:
+ * - Generates invoices for confirmed and paid orders
+ * - Includes complete order details, customer information, and itemization
+ * - Calculates and displays taxes, shipping, and total amounts
+ * - Formats dates and numbers according to French standards
+ * - Provides professional invoice layout with store branding
+ * 
+ * Document Structure:
+ * - Header with store name and invoice title
+ * - Order and customer information section
+ * - Billing and shipping address details
+ * - Itemized product table with quantities and prices
+ * - Summary section with subtotals, taxes, and total
+ * - Footer with additional information
+ * 
+ * Integration Points:
+ * - Order management system for order data
+ * - Email service for invoice delivery
+ * - Payment processing for confirmed orders
+ * - Store configuration for branding
+ * 
+ * Dependencies:
+ * - iText library for PDF generation
+ * - Spring configuration for store information
+ *
+ */
 @Service
 class InvoicePdfService {
 
@@ -24,6 +61,26 @@ class InvoicePdfService {
     @Value("\${app.store.name:Magasin SEDO}")
     private lateinit var storeName: String
 
+    /**
+     * Generates a complete PDF invoice for an order.
+     * 
+     * This method creates a professional PDF invoice containing all order details,
+     * customer information, itemized products, and financial summaries.
+     * 
+     * Document Generation Process:
+     * 1. Creates PDF document with A4 page size
+     * 2. Adds header with store name and invoice title
+     * 3. Includes order information (number, date, customer, status)
+     * 4. Adds billing and shipping address details
+     * 5. Creates itemized table of ordered products
+     * 6. Calculates and displays financial totals
+     * 7. Adds footer with additional information
+     * 
+     * @param order The Order entity containing all order details
+     * @param payerFullName The full name of the customer for billing
+     * @return Byte array containing the generated PDF invoice
+     * @throws RuntimeException if PDF generation fails
+     */
     fun generateInvoicePdf(order: Order, payerFullName: String): ByteArray {
         logger.info("Generating PDF invoice for order: {}", order.orderNumber)
 
@@ -57,12 +114,12 @@ class InvoicePdfService {
     }
 
     private fun addHeader(document: Document) {
-        // Titre du document
+        // Document title
         val title = Paragraph("FACTURE", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 24f, Color.DARK_GRAY))
         title.alignment = Element.ALIGN_CENTER
         title.spacingAfter = 20f
         document.add(title)
-        // Nom du magasin
+        // store name
         val storeTitle = Paragraph(storeName, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18f, Color.BLACK))
         storeTitle.alignment = Element.ALIGN_CENTER
         storeTitle.spacingAfter = 30f
@@ -73,10 +130,10 @@ class InvoicePdfService {
         val table = PdfPTable(2)
         table.widthPercentage = 100f
         table.setSpacingAfter(20f)
-        // Numéro de commande
+        // order number
         table.addCell(createInfoCell("Numéro de commande:", true))
         table.addCell(createInfoCell(order.orderNumber, false))
-        // Date de commande
+        // order date
         val orderDate = order.createdAt?.atZone(ZoneId.systemDefault())?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) ?: "N/A"
         table.addCell(createInfoCell("Date de commande:", true))
         table.addCell(createInfoCell(orderDate, false))
@@ -89,7 +146,7 @@ class InvoicePdfService {
         table.addCell(createInfoCell("Email:", true))
         table.addCell(createInfoCell(order.customerEmail ?: "N/A", false))
 
-        // Statut
+        // Status
         table.addCell(createInfoCell("Statut:", true))
         table.addCell(createInfoCell(order.status.name, false))
 
@@ -101,7 +158,7 @@ class InvoicePdfService {
         table.widthPercentage = 100f
         table.setSpacingAfter(20f)
 
-        // Adresse de livraison
+        // shipping address
         val shippingCell = PdfPCell()
         shippingCell.border = Rectangle.NO_BORDER
         shippingCell.addElement(Paragraph("ADRESSE DE LIVRAISON", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12f)))
@@ -111,7 +168,7 @@ class InvoicePdfService {
             shippingCell.addElement(Paragraph(address.country, FontFactory.getFont(FontFactory.HELVETICA, 10f)))
         }
 
-        // Adresse de facturation
+        // Billing address
         val billingCell = PdfPCell()
         billingCell.border = Rectangle.NO_BORDER
         billingCell.addElement(Paragraph("ADRESSE DE FACTURATION", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12f)))
@@ -132,14 +189,14 @@ class InvoicePdfService {
         table.setSpacingAfter(20f)
         table.setWidths(floatArrayOf(3f, 1f, 1.5f, 1f, 1.5f))
 
-        // En-têtes
+        // Headers
         table.addCell(createHeaderCell("Article"))
         table.addCell(createHeaderCell("Qté"))
         table.addCell(createHeaderCell("Prix HT"))
         table.addCell(createHeaderCell("TVA"))
         table.addCell(createHeaderCell("Total HT"))
 
-        // Articles
+        // Items
         order.items.forEach { item ->
             table.addCell(createItemCell(item.productName))
             table.addCell(createItemCell(item.quantity.toString()))
@@ -157,7 +214,7 @@ class InvoicePdfService {
         table.horizontalAlignment = Element.ALIGN_RIGHT
         table.setSpacingAfter(20f)
 
-        // Sous-total
+        // Sub-total HT
         table.addCell(createTotalLabelCell("Sous-total HT:"))
         table.addCell(createTotalValueCell("${order.subtotal}€"))
 
@@ -165,7 +222,7 @@ class InvoicePdfService {
         table.addCell(createTotalLabelCell("TVA:"))
         table.addCell(createTotalValueCell("${order.taxAmount}€"))
 
-        // Frais de port
+        // Shipping cost
         table.addCell(createTotalLabelCell("Frais de port:"))
         table.addCell(createTotalValueCell("${order.shippingAmount}€"))
 

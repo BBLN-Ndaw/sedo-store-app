@@ -46,6 +46,59 @@ import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 
+/**
+ * Service class responsible for comprehensive order management in the Store Management System.
+ * 
+ * This service provides complete order lifecycle management including:
+ * - Order creation and processing workflows
+ * - Payment integration with PayPal
+ * - Order status tracking and updates
+ * - Inventory management and stock validation
+ * - Financial calculations and reporting
+ * - Advanced search and filtering capabilities
+ * - Integration with audit logging and event publishing
+ * 
+ * Business Logic:
+ * - Handles complete order workflow from creation to delivery
+ * - Integrates with PayPal for secure payment processing
+ * - Manages inventory levels and product availability
+ * - Calculates pricing, taxes, and shipping costs
+ * - Supports various order statuses and state transitions
+ * - Provides comprehensive reporting and analytics
+ * 
+ * Order Lifecycle:
+ * 1. PENDING - Initial order creation
+ * 2. CONFIRMED - Payment confirmed
+ * 3. PROCESSING - Order being prepared
+ * 4. READY_FOR_PICKUP - Ready for customer pickup
+ * 5. SHIPPED - Order shipped to customer
+ * 6. DELIVERED - Order delivered successfully
+ * 7. CANCELLED - Order cancelled
+ * 
+ * Financial Features:
+ * - Automatic tax calculation
+ * - Shipping cost computation
+ * - Free shipping threshold management
+ * - Revenue tracking and reporting
+ * - Average order value calculations
+ * - Daily and monthly sales summaries
+ * 
+ * Integration Points:
+ * - PayPal service for payment processing
+ * - Product service for inventory management
+ * - Email service for order notifications
+ * - Audit service for comprehensive logging
+ * - Event publishing for order state changes
+ * 
+ * Dependencies:
+ * - OrderRepository for order data persistence
+ * - ProductRepository for inventory validation
+ * - PayPalService for payment processing
+ * - AuditService for operation tracking
+ * - ApplicationEventPublisher for event-driven architecture
+ * - MongoTemplate for advanced querying capabilities
+ *
+ */
 @Service
 class OrderService(
     private val orderRepository: OrderRepository,
