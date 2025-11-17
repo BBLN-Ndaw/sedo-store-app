@@ -62,7 +62,9 @@ class SecurityConfig(
         return object : WebMvcConfigurer {
             override fun addCorsMappings(registry: CorsRegistry) {
                 registry.addMapping("/**")
-                    .allowedOrigins("http://localhost:4200")
+                    .allowedOrigins("http://localhost:4200", //local Angular frontend running on port 4200
+                                    "http://localhost:4000" // containerized frontend running on port 4000
+                    )
                     .allowedMethods("*")
                     .allowedHeaders("*")
                     .allowCredentials(true)
