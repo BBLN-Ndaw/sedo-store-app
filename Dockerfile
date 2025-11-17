@@ -1,5 +1,5 @@
 # Use Java 17 image
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine
 
 # Set working directory
 WORKDIR /app
@@ -22,4 +22,4 @@ RUN ./gradlew build -x test
 EXPOSE 8080
 
 # Command to run the application
-CMD ["java", "-jar", "build/libs/Jwt_auth_app-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "build/libs/app-0.0.1-SNAPSHOT.jar"]

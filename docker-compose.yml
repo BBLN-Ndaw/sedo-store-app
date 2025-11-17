@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:7.0
-    container_name: jwt-auth-mongodb
+    container_name: sedo-store-mongodb
     restart: always
     ports:
       - "27017:27017"
@@ -35,7 +35,7 @@ services:
 
   jwt-auth-app:
     build: . #Use the Dockerfile in the current directory
-    container_name: jwt-auth-app
+    container_name: sedo-store-app
     restart: always
     ports:
       - "8080:8080"
