@@ -1,9 +1,10 @@
+# Docker Compose file with image to upload in dockerhub
 version: '3.8'
 
 services:
   mongodb:
     image: mongo:7.0
-    container_name: sedo-store-mongodb
+    container_name: sedo-mongodb
     restart: always
     ports:
       - "27017:27017"
@@ -13,9 +14,8 @@ services:
       MONGO_INITDB_DATABASE: jwtauthdb
     volumes:
       - mongodb_data:/data/db
-      - ./docker/mongo-init:/docker-entrypoint-initdb.d
     networks:
-      - sedo-app-network
+      - sedo-network
 
   minio:
     image: minio/minio:latest
@@ -31,21 +31,10 @@ services:
     volumes:
       - minio_data:/data
     networks:
-      - sedo-app-network
-      
-  angular-frontend:
-    image: yayabbln/store_management:ui-sedo-v1.0.0 #image name from private dockerhub
-    container_name: sedo-frontend
-    restart: always
-    ports:
-      - "4000:4000"
-    depends_on:
-      - sedo-backend-app
-    networks:
-      - sedo-app-network
+      - sedo-network
 
-  jwt-auth-app:
-    build: . #Use the Dockerfile in the current directory
+  sedo-backend-app:
+    image: yayabbln/store_management:sedo-store-app-v1.0.0 #image name from private dockerhub
     container_name: sedo-backend-app
     restart: always
     ports:
@@ -68,12 +57,23 @@ services:
       - mongodb
       - minio
     networks:
-      - sedo-app-network
+      - sedo-network
+
+  angular-frontend:
+    image: yayabbln/store_management:ui-sedo-v1.0.0 #image name from private dockerhub
+    container_name: sedo-frontend
+    restart: always
+    ports:
+      - "4000:4000"
+    depends_on:
+      - sedo-backend-app
+    networks:
+      - sedo-network
 
 volumes:
   mongodb_data:
   minio_data:
 
 networks:
-  sedo-app-network:
+  sedo-network:
     driver: bridge

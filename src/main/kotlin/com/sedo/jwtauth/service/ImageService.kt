@@ -183,9 +183,9 @@ class ImageService(
             throw IllegalArgumentException("File type not supported. Allowed types: ${allowedTypes.joinToString()}")
         }
         
-        val maxSize = 5 * 1024 * 1024 // 5MB
+        val maxSize = 6 * 1024 * 1024 // 6MB
         if (file.size > maxSize) {
-            throw IllegalArgumentException("File size exceeds maximum limit of 5MB")
+            throw IllegalArgumentException("File size exceeds maximum limit of 6MB")
         }
     }
 
