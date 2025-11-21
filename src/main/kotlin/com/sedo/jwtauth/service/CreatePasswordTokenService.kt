@@ -1,11 +1,9 @@
 package com.sedo.jwtauth.service
 
-import com.sedo.jwtauth.model.entity.PasswordResetToken
-import com.sedo.jwtauth.repository.PasswordResetTokenRepository
-import org.slf4j.LoggerFactory
+import com.sedo.jwtauth.model.entity.CreatePasswordToken
+import com.sedo.jwtauth.repository.CreatePasswordTokenRepository
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.stereotype.Service
-import java.time.Instant
 import java.util.*
 
 /**
@@ -39,24 +37,20 @@ import java.util.*
  * - Security monitoring and auditing
  * 
  * Dependencies:
- * - PasswordResetTokenRepository for token persistence
+ * - CreatePasswordTokenRepository for token persistence
  * - UUID for secure token generation
  * - Instant for precise time-based expiration
  *
  */
 @Service
-class PasswordResetTokenService(
-    private val passwordResetTokenRepository: PasswordResetTokenRepository
+class CreatePasswordTokenService(
+    private val createPasswordTokenRepository: CreatePasswordTokenRepository
 ) {
 
-    private val logger = getLogger(PasswordResetTokenService::class.java)
-
-    companion object {
-        private const val TOKEN_EXPIRY_HOURS = 24L
-    }
+    private val logger = getLogger(CreatePasswordTokenService::class.java)
 
     /**
-     * Creates a new password reset token for a user.
+     * Creates a new password token for a user.
      * 
      * Security Process:
      * 1. Removes any existing tokens for the user
@@ -73,28 +67,26 @@ class PasswordResetTokenService(
      * @param userId The unique identifier of the user requesting password reset
      * @return Generated password reset token string
      */
-    fun createPasswordResetToken(userId: String): String {
+    fun createPasswordToken(userId: String): String {
         logger.info("Creating password reset token for user ID: {}", userId)
 
-        passwordResetTokenRepository.deleteByUserId(userId)
+        createPasswordTokenRepository.deleteByUserId(userId)
 
         val token = UUID.randomUUID().toString()
-        val expiryDate = Instant.now().plusSeconds(TOKEN_EXPIRY_HOURS * 3600)
 
-        val passwordResetToken = PasswordResetToken(
+        val createPasswordToken = CreatePasswordToken(
             token = token,
-            userId = userId,
-            expiryDate = expiryDate
+            userId = userId
         )
 
-        passwordResetTokenRepository.save(passwordResetToken)
+        createPasswordTokenRepository.save(createPasswordToken)
         logger.info("Password reset token created successfully for user ID: {}", userId)
 
         return token
     }
 
     /**
-     * Validates a password reset token and returns associated user ID.
+     * Validates a password creation token and returns associated user ID.
      * 
      * Validation Process:
      * 1. Checks if token exists in database
@@ -110,20 +102,20 @@ class PasswordResetTokenService(
      * @param token The password reset token to validate
      * @return User ID if token is valid, null if invalid or expired
      */
-    fun validateToken(token: String): String? {
-        logger.debug("Validating password reset token: {}", token)
+    fun validatePasswordCreationToken(token: String): String? {
+        logger.debug("Validating password creation token: {}", token)
 
-        val passwordResetToken = passwordResetTokenRepository.findByToken(token)
+        val passwordCreationToken = createPasswordTokenRepository.findByToken(token)
             ?: run {
-                logger.warn("Password reset token not found: {}", token)
+                logger.warn("Password creation token not found: {}", token)
                 return null
             }
-        if (passwordResetToken.used) {
-            logger.warn("Password reset token already used: {}", token)
+        if (passwordCreationToken.used) {
+            logger.warn("Password creation token already used: {}", token)
             return null
         }
-        logger.info("Password reset token validated successfully: {}", token)
-        return passwordResetToken.userId
+        logger.info("Password creation token validated successfully: {}", token)
+        return passwordCreationToken.userId
     }
 
     /**
@@ -137,10 +129,10 @@ class PasswordResetTokenService(
     fun markTokenAsUsed(token: String) {
         logger.info("Marking password reset token as used: {}", token)
 
-        val passwordResetToken = passwordResetTokenRepository.findByToken(token)
-        passwordResetToken?.let {
+        val passwordCreationToken = createPasswordTokenRepository.findByToken(token)
+        passwordCreationToken?.let {
             val updatedToken = it.copy(used = true)
-            passwordResetTokenRepository.save(updatedToken)
+            createPasswordTokenRepository.save(updatedToken)
             logger.info("Password reset token marked as used: {}", token)
         }
     }

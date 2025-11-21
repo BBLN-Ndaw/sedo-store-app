@@ -4,18 +4,14 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
-import com.sedo.jwtauth.constants.Constants.Endpoints.SET_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.REQUEST_PASSWORD_RESET
+import com.sedo.jwtauth.constants.Constants.Endpoints.CREATE_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.USER
 import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
-import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.filter.JwtAuthFilter
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod
-import org.springframework.http.HttpMethod.DELETE
-import org.springframework.http.HttpMethod.GET
-import org.springframework.http.HttpMethod.POST
-import org.springframework.http.HttpMethod.PUT
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -84,10 +80,9 @@ class SecurityConfig(
                     .requestMatchers("$API$LOGIN").permitAll()
                     .requestMatchers("$API$LOGOUT").permitAll()
                     .requestMatchers("$API$REFRESH_TOKEN").permitAll()
-                    .requestMatchers("$API$SET_PASSWORD").permitAll()
+                    .requestMatchers("$API$CREATE_PASSWORD").permitAll()
                     .requestMatchers("$API$VALIDATE_TOKEN").permitAll()
-
-                    .requestMatchers("/api/admin").hasAuthority(ADMIN_ROLE)
+                    .requestMatchers("$USER$REQUEST_PASSWORD_RESET").permitAll()
                     .anyRequest().authenticated()
             }
             .exceptionHandling { exceptions ->

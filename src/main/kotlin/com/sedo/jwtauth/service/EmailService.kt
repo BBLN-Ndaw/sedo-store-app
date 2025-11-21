@@ -65,18 +65,17 @@ class EmailService @Autowired constructor(
      * @param email The recipient's email address
      * @param firstName The user's first name for personalization
      * @param lastName The user's last name for personalization
-     * @param userName The assigned username (for reference)
      * @param token The secure token for password setup validation
      * @throws RuntimeException if email sending fails
      */
-    fun sendPasswordCreationEmail(email: String, firstName: String, lastName: String, userName: String, token: String) {
+    fun sendPasswordCreationEmail(email: String, firstName: String, lastName: String, token: String) {
         logger.info("Sending password creation email to: {}", email)
 
         try {
             val message = SimpleMailMessage().apply {
                 setFrom(fromAddress)
                 setTo(email)
-                subject = "Création de votre compte PAYCE - Définir votre mot de passe"
+                subject = "Création de votre compte Sedo store - Définir votre mot de passe"
                 text = buildPasswordCreationEmailText(firstName, lastName, token)
             }
 
@@ -85,6 +84,26 @@ class EmailService @Autowired constructor(
 
         } catch (e: Exception) {
             logger.error("Failed to send password creation email to: {}", email, e)
+            throw RuntimeException("Failed to send email", e)
+        }
+    }
+
+    fun sendEmailPasswordReset(email: String, firstName: String, lastName: String, token: String) {
+        logger.info("Sending password reset email to: {}", email)
+
+        try {
+            val message = SimpleMailMessage().apply {
+                setFrom(fromAddress)
+                setTo(email)
+                subject = "Réinitialisation de votre mot de passe Sedo store"
+                text = buildResetPasswordEmailText(firstName, lastName, token)
+            }
+
+            mailSender.send(message)
+            logger.info("Password reset email sent successfully to: {}", email)
+
+        } catch (e: Exception) {
+            logger.error("Failed to send password reset email to: {}", email, e)
             throw RuntimeException("Failed to send email", e)
         }
     }
@@ -149,6 +168,25 @@ class EmailService @Autowired constructor(
             
             Cordialement,
             Le gestionnaire
+        """.trimIndent()
+    }
+
+    fun buildResetPasswordEmailText(firstName: String, lastName: String, token: String): String {
+        val passwordResetUrl = "$backendUrl/api/auth/validate-token?token=$token"
+
+        return """
+            Bonjour $firstName $lastName,
+            
+            Nous avons reçu une demande de réinitialisation de votre mot de passe.
+            
+            Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien ci-dessous :
+            
+            $passwordResetUrl
+            
+            Ce lien est valide pendant 15 minutes. Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email.
+            
+            Cordialement,
+            Sedo Store Support
         """.trimIndent()
     }
 

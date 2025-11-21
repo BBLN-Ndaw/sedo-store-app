@@ -1,10 +1,13 @@
 package com.sedo.jwtauth.service
 
+import com.sedo.jwtauth.constants.Constants.Endpoints.FRONT_END_CREATE_PASSWORD
 import com.sedo.jwtauth.exception.DuplicateUsernameException
 import com.sedo.jwtauth.exception.InvalidPasswordException
+import com.sedo.jwtauth.exception.UserEmailNotFoundException
 import com.sedo.jwtauth.exception.UserNotFoundException
 import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.dto.Address
+import com.sedo.jwtauth.model.dto.PasswordCreationResponseDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
 import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.model.entity.User
@@ -35,7 +38,7 @@ import kotlin.jvm.optionals.getOrNull
  * @property mongoTemplate MongoDB template for custom queries
  * @property passwordEncoder Encoder for password security
  * @property emailService Service for sending emails
- * @property passwordResetTokenService Service for managing password reset tokens
+ * @property createPasswordTokenService Service for managing password reset tokens
  *
  */
 @Service
@@ -44,7 +47,7 @@ class UserService @Autowired constructor(
     private val mongoTemplate: MongoTemplate,
     private val passwordEncoder: BCryptPasswordEncoder,
     private val emailService: EmailService,
-    private val passwordResetTokenService: PasswordResetTokenService) {
+    private val createPasswordTokenService: CreatePasswordTokenService) {
 
     private val logger = LoggerFactory.getLogger(UserService::class.java)
 
@@ -148,12 +151,11 @@ class UserService @Autowired constructor(
 
         // Créer le token de création de mot de passe et envoyer l'email
         try {
-            val token = passwordResetTokenService.createPasswordResetToken(savedUser.id!!)
+            val token = createPasswordTokenService.createPasswordToken(savedUser.id!!)
             emailService.sendPasswordCreationEmail(
                 savedUser.email,
                 savedUser.firstName,
                 savedUser.lastName,
-                savedUser.userName,
                 token
             )
             logger.info("Password creation email sent to user: {}", savedUser.email)
@@ -162,6 +164,30 @@ class UserService @Autowired constructor(
         }
 
         return savedUser
+    }
+
+    fun sendEmailToResetPassword(email: String): PasswordCreationResponseDto {
+        logger.info("Initiating password reset for email: {}", email)
+        val user = userRepository.findByEmail(email)
+            ?: run {
+                logger.warn("Password reset requested for non-existent email: {}", email)
+                throw UserEmailNotFoundException(email)
+            }
+
+        try {
+            val token = createPasswordTokenService.createPasswordToken(user.id!!)
+            emailService.sendEmailPasswordReset(
+                user.email,
+                user.firstName,
+                user.lastName,
+                token
+            )
+            logger.info("Password reset email sent to: {}", email)
+        return PasswordCreationResponseDto("If the email exists in our system, a password reset link has been sent.");
+        } catch (e: Exception) {
+            logger.error("Failed to send password reset email to: {}", email, e)
+            throw e
+        }
     }
 
     fun updateStatus(userId: String, action: ActionDto): User {
@@ -210,14 +236,14 @@ class UserService @Autowired constructor(
     fun setPasswordWithToken(token: String, newPassword: String): User {
         logger.info("Setting password with token")
 
-        val userId = passwordResetTokenService.validateToken(token)
+        val userId = createPasswordTokenService.validatePasswordCreationToken(token)
             ?: throw InvalidPasswordException("Token invalide ou expiré")
 
         val user = getUserById(userId)
         val updatedUser = user.copy(password = passwordEncoder.encode(newPassword), isActive = true)
         userRepository.save(updatedUser)
 
-        passwordResetTokenService.markTokenAsUsed(token)
+        createPasswordTokenService.markTokenAsUsed(token)
 
         logger.info("Password set successfully for user ID: {}", userId)
         return updatedUser
@@ -226,7 +252,7 @@ class UserService @Autowired constructor(
     fun validateTokenAndGetRedirectUrl(token: String): String {
         logger.info("Validating token and generating redirect URL")
 
-        val userId = passwordResetTokenService.validateToken(token)
+        val userId = createPasswordTokenService.validatePasswordCreationToken(token)
 
         return if (userId != null) {
             val user = getUserById(userId)
@@ -246,18 +272,21 @@ class UserService @Autowired constructor(
             "token" to token
         )
 
+        println("baba build success url")
+
         val queryString = params.entries.joinToString("&") { "${it.key}=${it.value}" }
-        return "$frontendUrl/set-password?$queryString"
+        return "$frontendUrl$FRONT_END_CREATE_PASSWORD?$queryString"
     }
 
     private fun buildErrorUrl(frontendUrl: String): String {
+        println("yaya build error url")
         val params = mapOf(
             "valid" to "false",
             "message" to "Token+invalide+ou+expire"
         )
 
         val queryString = params.entries.joinToString("&") { "${it.key}=${it.value}" }
-        return "$frontendUrl/set-password?$queryString"
+        return "$frontendUrl$FRONT_END_CREATE_PASSWORD?$queryString"
     }
 
     fun deleteUser(id: String): User {

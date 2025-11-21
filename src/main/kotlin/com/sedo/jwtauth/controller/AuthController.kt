@@ -4,11 +4,11 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.API
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
-import com.sedo.jwtauth.constants.Constants.Endpoints.SET_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.CREATE_PASSWORD
 import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
 import com.sedo.jwtauth.model.dto.LoginResponseDto
 import com.sedo.jwtauth.model.dto.LoginUserDto
-import com.sedo.jwtauth.model.dto.SetPasswordDto
+import com.sedo.jwtauth.model.dto.CreatePasswordDto
 import com.sedo.jwtauth.service.AuthService
 import com.sedo.jwtauth.service.UserService
 import jakarta.servlet.http.HttpServletResponse
@@ -74,19 +74,19 @@ class AuthController(
     }
 
     /**
-     * Sets a new password using a password reset token.
+     * Creates or resets a user's password using a reset token.
      *
-     * @param setPasswordDto DTO containing the reset token and new password
+     * @param createPasswordDto DTO containing the reset token and new password
      * @return ResponseEntity containing success message
      */
-    @PostMapping(SET_PASSWORD)
-    fun setPassword(@Valid @RequestBody setPasswordDto: SetPasswordDto): ResponseEntity<Map<String, String>> {
-        userService.setPasswordWithToken(setPasswordDto.token, setPasswordDto.password)
+    @PostMapping(CREATE_PASSWORD)
+    fun createPassword(@Valid @RequestBody createPasswordDto: CreatePasswordDto): ResponseEntity<Map<String, String>> {
+        userService.setPasswordWithToken(createPasswordDto.token, createPasswordDto.password)
         return ResponseEntity.ok(mapOf("message" to "Mot de passe définit avec succès"))
     }
 
     /**
-     * Validates a password reset token and redirects to appropriate URL.
+     * Validates a password reset token and redirects to front end page for updating or setting password.
      *
      * @param token Password reset token to validate
      * @param response HTTP response for redirection
@@ -94,6 +94,7 @@ class AuthController(
     @GetMapping(VALIDATE_TOKEN)
     fun validateTokenAndRedirect(@RequestParam token: String, response: HttpServletResponse) {
         val redirectUrl = userService.validateTokenAndGetRedirectUrl(token)
+        println("Redirecting to URL: $redirectUrl")
         response.sendRedirect(redirectUrl)
     }
 }

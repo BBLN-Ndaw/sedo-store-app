@@ -103,6 +103,13 @@ class InvalidOperationException(message: String) : RuntimeException(message)
 class DuplicateUsernameException(username: String) : RuntimeException("Username '$username' already exists")
 
 /**
+ * Exception thrown when a user with the specified email is not found.
+ *
+ * @param email The email address that was not found
+ */
+class UserEmailNotFoundException(email: String) : RuntimeException("User with email '$email' not found")
+
+/**
  * Exception thrown when attempting to use an email that already exists.
  * 
  * @param email The duplicate email address

@@ -1,10 +1,13 @@
 package com.sedo.jwtauth.controller
 
+import com.sedo.jwtauth.constants.Constants.Endpoints.REQUEST_PASSWORD_RESET
 import com.sedo.jwtauth.constants.Constants.Endpoints.USER
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.model.dto.ActionDto
+import com.sedo.jwtauth.model.dto.PasswordCreationRequestDto
+import com.sedo.jwtauth.model.dto.PasswordCreationResponseDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
 import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.service.UserService
@@ -136,7 +139,7 @@ class UserController @Autowired constructor(
     }
 
     /**
-     * Updates a user's password.
+     * Updates a user's password after logged in.
      *
      * @param id User ID whose password to update
      * @param passwordUpdate DTO containing current and new password
@@ -151,6 +154,15 @@ class UserController @Autowired constructor(
             .let { ResponseEntity.ok(it) }
     }
 
+    /**
+     * Initiates password reset process by sending reset email before login.
+     *
+     * @param PasswordCreationRequestDto containing email of the user requesting password
+     */
+    @PostMapping(REQUEST_PASSWORD_RESET)
+    fun sendEmailToResetPassword(@RequestBody passwordCreationRequestDto: PasswordCreationRequestDto): PasswordCreationResponseDto {
+        return userService.sendEmailToResetPassword(passwordCreationRequestDto.email)
+    }
     /**
      * Deletes a user from the system.
      *

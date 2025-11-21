@@ -1,10 +1,12 @@
 package com.sedo.jwtauth.filter
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.API
+import com.sedo.jwtauth.constants.Constants.Endpoints.USER
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
-import com.sedo.jwtauth.constants.Constants.Endpoints.SET_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.REQUEST_PASSWORD_RESET
+import com.sedo.jwtauth.constants.Constants.Endpoints.CREATE_PASSWORD
 import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
 import com.sedo.jwtauth.exception.AuthenticationFailedException
 import com.sedo.jwtauth.util.JwtUtil
@@ -90,11 +92,12 @@ class JwtAuthFilter(
 
     private fun isPublicEndpoint(servletPath: String): Boolean {
         val publicEndpoints = listOf(
-            API + LOGIN,
-            API + LOGOUT,
-            API + REFRESH_TOKEN,
-            API + SET_PASSWORD,
-            API + VALIDATE_TOKEN
+                API + LOGIN,
+                API + LOGOUT,
+                API + REFRESH_TOKEN,
+                API + CREATE_PASSWORD,
+                API + VALIDATE_TOKEN,
+                USER + REQUEST_PASSWORD_RESET
         )
         return publicEndpoints.contains(servletPath)
     }

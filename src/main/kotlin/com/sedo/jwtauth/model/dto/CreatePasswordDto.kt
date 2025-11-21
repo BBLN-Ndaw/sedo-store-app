@@ -3,7 +3,7 @@ package com.sedo.jwtauth.model.dto
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
-data class SetPasswordDto(
+data class CreatePasswordDto(
     @field:NotBlank(message = "Token is required")
     val token: String,
 

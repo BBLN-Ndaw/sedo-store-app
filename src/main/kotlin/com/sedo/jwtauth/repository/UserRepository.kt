@@ -25,4 +25,11 @@ interface UserRepository : MongoRepository<User, String> {
      * @return User entity if found, null otherwise
      */
     fun findByUserName(username: String): User?
+    /**
+     * Finds a user by their email address.
+     *
+     * @param email The email address to search for
+     * @return User entity if found, null otherwise
+     */
+    fun findByEmail(email: String): User?
 }

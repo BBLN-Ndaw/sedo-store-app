@@ -17,7 +17,7 @@ object Constants {
         const val LOGIN = "/auth/login"
         const val LOGOUT = "/auth/logout"
         const val REFRESH_TOKEN = "/auth/refresh_token"
-        const val SET_PASSWORD = "/auth/set-password"
+        const val CREATE_PASSWORD = "/auth/create-password"
         const val VALIDATE_TOKEN = "/auth/validate-token"
         const val LOYALTY = "/loyalty"
         const val USER = "$API/users"
@@ -27,6 +27,8 @@ object Constants {
         const val SUPPLIERS = "$API/suppliers"
         const val PRODUCT_WITH_CATEGORY = "/product-with-category"
         const val DASHBOARD = "$API/dashboard"
+        const val REQUEST_PASSWORD_RESET = "/request-password-reset"
+        const val FRONT_END_CREATE_PASSWORD = "/create-password"
     }
     
     object Roles {
