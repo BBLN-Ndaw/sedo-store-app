@@ -357,7 +357,7 @@ class ProductService(
 
     private fun extractProductImagePath(url: String): String? {
         val decoded = URLDecoder.decode(url, "UTF-8")
-        val regex = Regex("products/[^?]+\\.png")
+        val regex = Regex("products/[^?]+\\.(png|jpg|jpeg|gif|webp)")
         return regex.find(decoded)?.value
     }
 }
