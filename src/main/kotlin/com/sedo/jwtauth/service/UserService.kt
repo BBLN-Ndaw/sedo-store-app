@@ -108,6 +108,16 @@ class UserService @Autowired constructor(
         return PageImpl(users, pageable, total)
     }
 
+    /**
+     * Retrieves all users.
+     *
+     * @return List of all User entities
+     */
+    fun getAllUsers(): List<User> {
+        logger.debug("Retrieving all users")
+        return userRepository.findAll()
+    }
+
     fun getUserById(id: String): User {
         logger.debug("Retrieving user with ID: {}", id)
         return userRepository.findById(id).getOrNull()

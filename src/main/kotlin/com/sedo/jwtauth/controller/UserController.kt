@@ -57,6 +57,17 @@ class UserController @Autowired constructor(
             .map { it.toDto() }
             .let { ResponseEntity.ok(it) }
     }
+    /**
+     * Retrieves all users.
+     * @return ResponseEntity containing list of all users
+     */
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun getAllUsers(): ResponseEntity<List<UserDto>> {
+        return userService.getAllUsers()
+            .map { it.toDto() }
+            .let { ResponseEntity.ok(it) }
+    }
 
     /**
      * Creates a new user in the system.

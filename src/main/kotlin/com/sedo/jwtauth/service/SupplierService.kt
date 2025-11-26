@@ -100,6 +100,16 @@ class SupplierService(
     }
 
     /**
+     * Retrieves all suppliers without any filters.
+     *
+     * @return List of all Supplier entities
+     */
+    fun getAllSuppliers(): List<Supplier> {
+        logger.debug("Retrieving all suppliers without filters")
+        return supplierRepository.findAll()
+    }
+
+    /**
      * Creates MongoDB query for supplier search with multiple criteria.
      * 
      * @param search Text search term

@@ -297,7 +297,7 @@ class ProductService(
 
         val existingProduct = getProductById(product.id)
 
-        val sanitizedImages = product.images?.mapNotNull { extractProductImagePath(it) }
+        val sanitizedImages = product.imageUrls?.mapNotNull { extractProductImagePath(it) }
         
         val updatedProduct = existingProduct.copy(
             name = product.name ?: existingProduct.name,

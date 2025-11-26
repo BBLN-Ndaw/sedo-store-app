@@ -3,6 +3,7 @@ package com.sedo.jwtauth.controller
 import com.sedo.jwtauth.constants.Constants.Endpoints.SUPPLIERS
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
+import com.sedo.jwtauth.exception.ResourceNotFoundException
 import com.sedo.jwtauth.mapper.toDto
 import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.dto.SupplierDto
@@ -60,6 +61,17 @@ class SupplierController(
                         @RequestParam(defaultValue = "50") size: Int): ResponseEntity<Page<SupplierDto>> {
         return ResponseEntity.ok(supplierService.getAllSuppliers(search, isActive, category, page, size).map { it.toDto() })
     }
+
+    /**
+    * Retrieves a list of all suppliers.
+    * @return ResponseEntity containing list of SupplierDto summaries
+    */
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
+    fun getSupplierSummaries(): ResponseEntity<List<SupplierDto>> {
+        return ResponseEntity.ok(supplierService.getAllSuppliers().map { it.toDto() })
+    }
+
     
     /**
      * Retrieves detailed information for a specific supplier.
@@ -70,7 +82,7 @@ class SupplierController(
      *
      * @param id Unique identifier of the supplier to retrieve
      * @return ResponseEntity containing detailed SupplierDto
-     * @throws SupplierNotFoundException if supplier with given ID doesn't exist
+     * @throws ResourceNotFoundException if supplier with given ID doesn't exist
      *
      * Security: Requires ADMIN or EMPLOYEE role for supplier details access
      */
@@ -89,8 +101,6 @@ class SupplierController(
      *
      * @param supplierDto Valid supplier data containing business information
      * @return ResponseEntity with HTTP 201 status containing created SupplierDto
-     * @throws ValidationException if supplier data is invalid
-     * @throws DuplicateSupplierException if supplier already exists
      *
      * Security: Requires ADMIN or EMPLOYEE role for supplier creation
      */
@@ -111,8 +121,6 @@ class SupplierController(
      * @param id Unique identifier of the supplier to update
      * @param supplierDto Valid supplier data with updated information
      * @return ResponseEntity containing updated SupplierDto
-     * @throws SupplierNotFoundException if supplier doesn't exist
-     * @throws ValidationException if updated data is invalid
      *
      * Security: Requires ADMIN or EMPLOYEE role for supplier updates
      */
@@ -135,9 +143,6 @@ class SupplierController(
      * @param id Unique identifier of the supplier to update
      * @param action ActionDto containing the status change operation
      * @return ResponseEntity containing updated Supplier entity
-     * @throws SupplierNotFoundException if supplier doesn't exist
-     * @throws InvalidStatusTransitionException if status change is not allowed
-     *
      * Security: Requires ADMIN or EMPLOYEE role for supplier status management
      */
     @PatchMapping("/{id}")
@@ -158,9 +163,6 @@ class SupplierController(
      *
      * @param id Unique identifier of the supplier to delete
      * @return ResponseEntity containing deleted SupplierDto for confirmation
-     * @throws SupplierNotFoundException if supplier doesn't exist
-     * @throws SupplierDeletionException if supplier has active relationships
-     *
      * Security: Requires ADMIN or EMPLOYEE role for supplier deletion
      */
     @DeleteMapping("/{id}")
