@@ -48,7 +48,7 @@ import java.time.Instant
 
 @Document(collection = "products")
 data class Product(
-    @Id
+        @Id
     val id: String? = null,
     val name: String,
     val description: String? = null,
@@ -56,13 +56,13 @@ data class Product(
     val categoryId: String,
     val supplierId: String,
     val sellingPrice: BigDecimal,//prix HT
-    val taxRate: BigDecimal = BigDecimal("0.20"), //20% par défaut
+    val taxRate: BigDecimal = BigDecimal("0.20"),
     val purchasePrice: BigDecimal,
     val stockQuantity: Int,
     val minStock: Int,
     val unit: String,
     val expirationDate: Instant? = null,
-    val images: List<String> = emptyList(),
+    val imageUrls: List<String> = emptyList(),
     val isActive: Boolean = true,
     val isOnPromotion: Boolean = false,
     val promotionPrice: BigDecimal? = null, //prix promo HT

@@ -5,6 +5,7 @@ import com.sedo.jwtauth.model.entity.User
 import com.sedo.jwtauth.repository.CategoryRepository
 import com.sedo.jwtauth.repository.OrderRepository
 import com.sedo.jwtauth.repository.ProductRepository
+import com.sedo.jwtauth.repository.SupplierRepository
 import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,11 +15,12 @@ import org.springframework.stereotype.Component
 
 @Component
 class DataInitializer @Autowired constructor(
-    private val userRepository: UserRepository,
-    private val categoryRepository: CategoryRepository,
-    private val productRepository: ProductRepository,
-    private val orderRepository: OrderRepository,
-    private val passwordEncoder: BCryptPasswordEncoder
+        private val userRepository: UserRepository,
+        private val categoryRepository: CategoryRepository,
+        private val productRepository: ProductRepository,
+        private val orderRepository: OrderRepository,
+        private val passwordEncoder: BCryptPasswordEncoder,
+        private val supplierRepository: SupplierRepository,
 ) : CommandLineRunner {
     
     private val logger = LoggerFactory.getLogger(DataInitializer::class.java)
@@ -30,6 +32,7 @@ class DataInitializer @Autowired constructor(
         initializeCategories()
         initializeProducts()
         initializeOrders()
+        initializeSuppliers()
         
         logger.info("Data initialization completed")
     }
@@ -107,7 +110,7 @@ class DataInitializer @Autowired constructor(
         }
     }
 
-    fun initializeOrders() {
+     private fun initializeOrders() {
         mockOrders.forEach { order ->
             if (orderRepository.findById(order.id!!).isEmpty) {
                 orderRepository.save(order)
@@ -116,6 +119,18 @@ class DataInitializer @Autowired constructor(
                 logger.info("Order '{}' already exists", order.orderNumber)
             }
 
+        }
+    }
+
+    private fun initializeSuppliers() {
+
+        mockSuppliers.forEach { supplier ->
+            if (supplierRepository.findById(supplier.id!!).isEmpty) {
+                supplierRepository.save(supplier)
+                logger.info("Default supplier '{}' created", supplier.name)
+            } else {
+                logger.info("Supplier '{}' already exists", supplier.name)
+            }
         }
     }
 }

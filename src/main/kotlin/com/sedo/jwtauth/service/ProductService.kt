@@ -81,7 +81,7 @@ class ProductService(
                 promotionEndDate = product.promotionEndDate?.let { ofInstant(product.promotionEndDate, systemDefault()) },
                 unit = product.unit,
                 expirationDate = product.expirationDate,
-                imageUrls = imageService.generatePresignedUrls( product.images),
+                imageUrls = imageService.generatePresignedUrls( product.imageUrls),
             )
         }
     }
@@ -140,7 +140,7 @@ class ProductService(
                 promotionEndDate = product.promotionEndDate?.let { ofInstant(product.promotionEndDate, systemDefault()) },
                 unit = product.unit,
                 expirationDate = product.expirationDate,
-                imageUrls = imageService.generatePresignedUrls(product.images),
+                imageUrls = imageService.generatePresignedUrls(product.imageUrls),
             )
         }
         return productsWithCategory
@@ -167,7 +167,7 @@ class ProductService(
                 promotionEndDate = product.promotionEndDate?.let { ofInstant(product.promotionEndDate, systemDefault()) },
                 unit = product.unit,
                 expirationDate = product.expirationDate,
-                imageUrls = imageService.generatePresignedUrls(product.images),
+                imageUrls = imageService.generatePresignedUrls(product.imageUrls),
             )
         return productsWithCategory
     }
@@ -312,7 +312,7 @@ class ProductService(
             minStock = product.minStock ?: existingProduct.minStock,
             expirationDate = product.expirationDate ?: existingProduct.expirationDate,
             unit = product.unit ?: existingProduct.unit,
-            images = sanitizedImages ?: existingProduct.images,
+            imageUrls = sanitizedImages ?: existingProduct.imageUrls,
             isOnPromotion = product.isOnPromotion ?: existingProduct.isOnPromotion,
             promotionPrice = product.promotionPrice ?: existingProduct.promotionPrice,
             promotionEndDate = product.promotionEndDate ?: existingProduct.promotionEndDate
