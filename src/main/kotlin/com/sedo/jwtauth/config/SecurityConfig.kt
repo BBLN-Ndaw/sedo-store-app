@@ -1,11 +1,14 @@
 package com.sedo.jwtauth.config
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.API
+import com.sedo.jwtauth.constants.Constants.Endpoints.CATEGORIES
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
 import com.sedo.jwtauth.constants.Constants.Endpoints.REQUEST_PASSWORD_RESET
 import com.sedo.jwtauth.constants.Constants.Endpoints.CREATE_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.PRODUCTS
+import com.sedo.jwtauth.constants.Constants.Endpoints.PRODUCT_WITH_CATEGORY
 import com.sedo.jwtauth.constants.Constants.Endpoints.REGISTER
 import com.sedo.jwtauth.constants.Constants.Endpoints.USER
 import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
@@ -14,6 +17,8 @@ import com.sedo.jwtauth.model.dto.RegisterUserDto
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
+import org.springframework.http.HttpMethod.GET
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -86,6 +91,7 @@ class SecurityConfig(
                     .requestMatchers("$API$CREATE_PASSWORD").permitAll()
                     .requestMatchers("$API$VALIDATE_TOKEN").permitAll()
                     .requestMatchers("$USER$REQUEST_PASSWORD_RESET").permitAll()
+                    .requestMatchers(GET, "$PRODUCTS$PRODUCT_WITH_CATEGORY/*").permitAll() // get all and for with id
                     .anyRequest().authenticated()
             }
             .exceptionHandling { exceptions ->

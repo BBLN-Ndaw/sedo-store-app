@@ -1,12 +1,15 @@
 package com.sedo.jwtauth.filter
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.API
+import com.sedo.jwtauth.constants.Constants.Endpoints.CATEGORIES
 import com.sedo.jwtauth.constants.Constants.Endpoints.USER
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGIN
 import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
 import com.sedo.jwtauth.constants.Constants.Endpoints.REQUEST_PASSWORD_RESET
 import com.sedo.jwtauth.constants.Constants.Endpoints.CREATE_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.PRODUCTS
+import com.sedo.jwtauth.constants.Constants.Endpoints.PRODUCT_WITH_CATEGORY
 import com.sedo.jwtauth.constants.Constants.Endpoints.REGISTER
 import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
 import com.sedo.jwtauth.exception.AuthenticationFailedException
@@ -15,6 +18,7 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory.getLogger
+import org.springframework.http.HttpMethod.GET
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetailsService
@@ -70,7 +74,7 @@ class JwtAuthFilter(
         logger.debug("Processing request: ${request.method} ${request.requestURI}")
 
         // Skip JWT validation for public endpoints
-        if (isPublicEndpoint(request.servletPath)) {
+        if (isPublicEndpoint(request)) {
             filterChain.doFilter(request, response)
             return
         }
@@ -91,7 +95,7 @@ class JwtAuthFilter(
         }
     }
 
-    private fun isPublicEndpoint(servletPath: String): Boolean {
+    private fun isPublicEndpoint(request: HttpServletRequest): Boolean {
         val publicEndpoints = listOf(
                 API + LOGIN,
                 API + LOGOUT,
@@ -99,9 +103,11 @@ class JwtAuthFilter(
                 API + REFRESH_TOKEN,
                 API + CREATE_PASSWORD,
                 API + VALIDATE_TOKEN,
-                USER + REQUEST_PASSWORD_RESET
-        )
-        return publicEndpoints.contains(servletPath)
+                USER + REQUEST_PASSWORD_RESET,
+                "$PRODUCTS$PRODUCT_WITH_CATEGORY/all",
+                )
+        return publicEndpoints.contains(request.servletPath) ||
+                (request.method == GET.name() && request.servletPath.matches("$PRODUCTS$PRODUCT_WITH_CATEGORY/[a-zA-Z0-9]+".toRegex())) // Allow product details endpoint
     }
 
     private fun extractTokenFromRequest(request: HttpServletRequest): String? {
@@ -119,7 +125,7 @@ class JwtAuthFilter(
 
     private fun authenticateWithToken(token: String, request: HttpServletRequest) {
         val username = jwtUtil.validateToken(token)
-        logger.debug("Valid JWT for user: ${username}")
+        logger.debug("Valid JWT for user: $username")
 
         val userDetails = userDetailsService.loadUserByUsername(username)
         val authentication = UsernamePasswordAuthenticationToken(
