@@ -47,6 +47,7 @@ class ProductController(
      * @return ResponseEntity containing list of all products with accessible image URLs
      */
     @GetMapping("/all")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun getAllProductsWithPresignedUrls(): ResponseEntity<List<ProductDto>> {
         return ResponseEntity.ok(productService.getAllProducts().map { it.toDtoWithPresignedUrls(imageService) })
     }

@@ -43,6 +43,7 @@ class CategoryController(
      * @return ResponseEntity containing list of CategoryDto objects
      */
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun getAllCategories(): ResponseEntity<List<CategoryDto>> {
         return ResponseEntity.ok(categoryService.getAllCategories().map { it.toDto() })
     }
@@ -52,9 +53,9 @@ class CategoryController(
      *
      * @param id Unique identifier of the category to retrieve
      * @return ResponseEntity containing the CategoryDto if found
-     * @throws CategoryNotFoundException if category with given ID doesn't exist
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('$ADMIN_ROLE', '$EMPLOYEE_ROLE')")
     fun getCategoryById(@PathVariable id: String): ResponseEntity<CategoryDto> {
         return ResponseEntity.ok(categoryService.getCategoryById(id).toDto())
     }
@@ -68,8 +69,6 @@ class CategoryController(
      *
      * @param categoryDto Valid category data transfer object containing category details
      * @return ResponseEntity with HTTP 201 status and created CategoryDto
-     * @throws ValidationException if category data is invalid
-     * @throws DuplicateCategoryException if category name already exists
      *
      * Security: Requires ADMIN or EMPLOYEE role
      */
@@ -89,8 +88,6 @@ class CategoryController(
      * @param id Unique identifier of the category to update
      * @param categoryDto Valid category data with updated information
      * @return ResponseEntity containing the updated CategoryDto
-     * @throws CategoryNotFoundException if category with given ID doesn't exist
-     * @throws ValidationException if updated data is invalid
      *
      * Security: Requires ADMIN or EMPLOYEE role
      */
@@ -113,7 +110,6 @@ class CategoryController(
      * @param id Unique identifier of the category to update
      * @param action ActionDto containing the status change operation
      * @return ResponseEntity containing the updated CategoryDto
-     * @throws CategoryNotFoundException if category with given ID doesn't exist
      *
      * Security: Requires ADMIN or EMPLOYEE role
      */

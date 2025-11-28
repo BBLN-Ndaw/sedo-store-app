@@ -42,7 +42,6 @@ class AuditController(
      *
      * @param userName Username of the user whose audit logs to retrieve
      * @return ResponseEntity containing list of AuditLog objects for the user
-     * @throws UserNotFoundException if user with given username doesn't exist
      *
      * Security: Requires ADMIN role for access to user audit trails
      */
@@ -62,7 +61,6 @@ class AuditController(
      * @param entityType Type of entity (e.g., "Product", "Order", "User")
      * @param entityId Unique identifier of the specific entity instance
      * @return ResponseEntity containing list of AuditLog objects for the entity
-     * @throws EntityNotFoundException if specified entity doesn't exist
      *
      * Security: Requires ADMIN role for access to entity audit trails
      */
@@ -86,7 +84,6 @@ class AuditController(
      * @param startDate Beginning of the date range (ISO 8601 format)
      * @param endDate End of the date range (ISO 8601 format)
      * @return ResponseEntity containing list of AuditLog objects within the date range
-     * @throws InvalidDateRangeException if date range is invalid or too broad
      *
      * Security: Requires ADMIN role for access to time-based audit queries
      */

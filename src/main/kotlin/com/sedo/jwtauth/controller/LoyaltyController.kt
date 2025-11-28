@@ -43,7 +43,6 @@ class LoyaltyController(private val loyaltyNotificationListener: LoyaltyNotifica
      *
      * @param customerUserName Username of the customer whose loyalty info is requested
      * @return ResponseEntity containing LoyaltyProgramDto with customer loyalty details
-     * @throws CustomerNotFoundException if customer with given username doesn't exist
      *
      * Security: Requires ADMIN or EMPLOYEE role for accessing customer loyalty data
      */
