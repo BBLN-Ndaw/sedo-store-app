@@ -1,13 +1,16 @@
 package com.sedo.jwtauth.controller
 
+import com.sedo.jwtauth.constants.Constants.Endpoints.REGISTER
 import com.sedo.jwtauth.constants.Constants.Endpoints.REQUEST_PASSWORD_RESET
 import com.sedo.jwtauth.constants.Constants.Endpoints.USER
 import com.sedo.jwtauth.constants.Constants.Roles.ADMIN_ROLE
 import com.sedo.jwtauth.constants.Constants.Roles.EMPLOYEE_ROLE
 import com.sedo.jwtauth.mapper.toDto
+import com.sedo.jwtauth.mapper.toUser
 import com.sedo.jwtauth.model.dto.ActionDto
 import com.sedo.jwtauth.model.dto.PasswordCreationRequestDto
 import com.sedo.jwtauth.model.dto.PasswordCreationResponseDto
+import com.sedo.jwtauth.model.dto.RegisterUserDto
 import com.sedo.jwtauth.model.dto.UpdatePasswordDto
 import com.sedo.jwtauth.model.dto.UserDto
 import com.sedo.jwtauth.service.UserService
@@ -81,6 +84,13 @@ class UserController @Autowired constructor(
         return userService.createUser(createUserDto)
             .toDto()
             .let { ResponseEntity.status(HttpStatus.CREATED).body(it) }
+    }
+
+    @PostMapping(REGISTER)
+    fun registerUser(@Valid @RequestBody registerUserDto: RegisterUserDto): ResponseEntity<UserDto> {
+        return userService.registerUser(registerUserDto.toUser())
+                .toDto()
+                .let { ResponseEntity.status(HttpStatus.CREATED).body(it) }
     }
 
     /**

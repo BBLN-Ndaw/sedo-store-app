@@ -94,7 +94,6 @@ class AuthController(
     @GetMapping(VALIDATE_TOKEN)
     fun validateTokenAndRedirect(@RequestParam token: String, response: HttpServletResponse) {
         val redirectUrl = userService.validateTokenAndGetRedirectUrl(token)
-        println("Redirecting to URL: $redirectUrl")
         response.sendRedirect(redirectUrl)
     }
 }

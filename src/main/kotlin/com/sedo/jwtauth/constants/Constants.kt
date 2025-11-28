@@ -20,6 +20,7 @@ object Constants {
         const val CREATE_PASSWORD = "/auth/create-password"
         const val VALIDATE_TOKEN = "/auth/validate-token"
         const val LOYALTY = "/loyalty"
+        const val REGISTER = "/register"
         const val USER = "$API/users"
         const val IMAGE = "$API/products/images"
         const val CATEGORIES = "$API/products/categories"
@@ -34,6 +35,7 @@ object Constants {
     object Roles {
         const val ADMIN_ROLE = "ADMIN"
         const val EMPLOYEE_ROLE = "EMPLOYEE"
+        const val CUSTOMER = "CUSTOMER"
     }
     object Cookie {
         const val JWT_REFRESH_TOKEN_NAME = "refresh_token"

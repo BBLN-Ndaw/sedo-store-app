@@ -12,7 +12,7 @@ data class CreatePasswordToken(
     @field:Indexed(unique = true)
     val token: String,
     val userId: String,
-    @field:Indexed(expireAfterSeconds = 900)
+    @field:Indexed(expireAfterSeconds = 900) // Token expires after 15 minutes
     val createdAt: Instant? = Instant.now(),
     var used: Boolean = false,
 )

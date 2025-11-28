@@ -457,7 +457,7 @@ class ApiExceptionHandler {
         logger.warn("Malformed JSON request: ${ex.message}")
         val errorResponse = ErrorResponseDto(
             error = "Bad Request",
-            message = "Malformed JSON request",
+            message = "Malformed JSON request: ${ex.message}",
             status = HttpStatus.BAD_REQUEST.value(),
             path = request.requestURI
         )

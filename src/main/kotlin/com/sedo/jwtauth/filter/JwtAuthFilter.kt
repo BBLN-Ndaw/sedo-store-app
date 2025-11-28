@@ -7,6 +7,7 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
 import com.sedo.jwtauth.constants.Constants.Endpoints.REQUEST_PASSWORD_RESET
 import com.sedo.jwtauth.constants.Constants.Endpoints.CREATE_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.REGISTER
 import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
 import com.sedo.jwtauth.exception.AuthenticationFailedException
 import com.sedo.jwtauth.util.JwtUtil
@@ -94,6 +95,7 @@ class JwtAuthFilter(
         val publicEndpoints = listOf(
                 API + LOGIN,
                 API + LOGOUT,
+                USER + REGISTER,
                 API + REFRESH_TOKEN,
                 API + CREATE_PASSWORD,
                 API + VALIDATE_TOKEN,

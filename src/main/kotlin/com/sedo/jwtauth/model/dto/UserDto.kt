@@ -1,7 +1,9 @@
 package com.sedo.jwtauth.model.dto
 
+import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.time.Instant
 
@@ -41,7 +43,7 @@ data class UserDto(
 
     @field:NotBlank(message = "Email is required")
     @field:Email(message = "Email must be valid")
-    @field:Size(max = 100, message = "Email must not exceed 100 characters")
+    @field:Size(max =   40, message = "Email must not exceed 40 characters")
     val email: String,
 
     val address : Address,
@@ -54,6 +56,31 @@ data class UserDto(
     val roles: List<String> = listOf("CLIENT"),
 
     val createdAt: Instant? = null,
+)
+
+data class RegisterUserDto(
+    @field:NotBlank(message = "Username is required")
+    @field:Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
+    val userName: String,
+
+    @field:NotBlank(message = "First name is required")
+    @field:Size(min = 2, max = 20, message = "First name must be between 2 and 20 characters")
+    val firstName: String,
+
+    @field:NotBlank(message = "Last name is required")
+    @field:Size(min = 2, max = 20, message = "Last name must be between 2 and 20 characters")
+    val lastName: String,
+
+    @field:NotBlank(message = "Email is required")
+    @field:Email(message = "Email must be valid")
+    @field:Size(max =   40, message = "Email must not exceed 100 characters")
+    val email: String,
+
+    @field:Valid
+    val address : Address,
+
+    @field:NotBlank(message = "numTel is required")
+    val numTel: String,
 )
 
 /**

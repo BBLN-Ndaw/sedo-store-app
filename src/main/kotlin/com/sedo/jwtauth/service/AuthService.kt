@@ -99,7 +99,7 @@ class AuthService @Autowired constructor(
     }
 
     private fun retrieveUserOrThrow(username: String): User {
-        return userRepository.findByUserName(username)
+        return userRepository.findByUserName(username)?.takeIf { it.isActive }
             ?: run {
                 logger.warn("User not found: {}", username)
                 throw UserNotFoundException(username)

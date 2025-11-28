@@ -6,9 +6,11 @@ import com.sedo.jwtauth.constants.Constants.Endpoints.LOGOUT
 import com.sedo.jwtauth.constants.Constants.Endpoints.REFRESH_TOKEN
 import com.sedo.jwtauth.constants.Constants.Endpoints.REQUEST_PASSWORD_RESET
 import com.sedo.jwtauth.constants.Constants.Endpoints.CREATE_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Endpoints.REGISTER
 import com.sedo.jwtauth.constants.Constants.Endpoints.USER
 import com.sedo.jwtauth.constants.Constants.Endpoints.VALIDATE_TOKEN
 import com.sedo.jwtauth.filter.JwtAuthFilter
+import com.sedo.jwtauth.model.dto.RegisterUserDto
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -76,9 +78,10 @@ class SecurityConfig(
             .cors {}  // Active la configuration CORS
             .authorizeHttpRequests { auth ->
                 auth
-                    // Public endpoints - only authentication related
+                    // Public endpoints - no authentication required
                     .requestMatchers("$API$LOGIN").permitAll()
                     .requestMatchers("$API$LOGOUT").permitAll()
+                    .requestMatchers("$USER$REGISTER").permitAll()
                     .requestMatchers("$API$REFRESH_TOKEN").permitAll()
                     .requestMatchers("$API$CREATE_PASSWORD").permitAll()
                     .requestMatchers("$API$VALIDATE_TOKEN").permitAll()

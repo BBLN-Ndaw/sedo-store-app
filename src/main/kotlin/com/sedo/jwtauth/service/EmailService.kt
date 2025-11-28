@@ -68,15 +68,14 @@ class EmailService @Autowired constructor(
      * @param token The secure token for password setup validation
      * @throws RuntimeException if email sending fails
      */
-    fun sendPasswordCreationEmail(email: String, firstName: String, lastName: String, token: String) {
+    fun sendPasswordCreationEmail(userName: String, email: String, firstName: String, lastName: String, token: String) {
         logger.info("Sending password creation email to: {}", email)
-
         try {
             val message = SimpleMailMessage().apply {
                 setFrom(fromAddress)
                 setTo(email)
                 subject = "Création de votre compte Sedo store - Définir votre mot de passe"
-                text = buildPasswordCreationEmailText(firstName, lastName, token)
+                text = buildPasswordCreationEmailText(userName,firstName, lastName, token)
             }
 
             mailSender.send(message)
@@ -150,7 +149,7 @@ class EmailService @Autowired constructor(
         }
     }
 
-    private fun buildPasswordCreationEmailText(firstName: String, lastName: String, token: String): String {
+    private fun buildPasswordCreationEmailText( userName: String, firstName: String, lastName: String, token: String): String {
         val passwordSetupUrl = "$backendUrl/api/auth/validate-token?token=$token"
 
         return """
@@ -162,9 +161,11 @@ class EmailService @Autowired constructor(
             
             $passwordSetupUrl
             
-            Ce lien est valide pendant 24 heures. Si le lien expire, veuillez contacter votre administrateur pour obtenir un nouveau lien.
+            Ce lien est valide pendant 15 minutes. Si le lien expire, veuillez contacter votre administrateur pour obtenir un nouveau lien.
             
             Une fois votre mot de passe défini, vous pourrez vous connecter à l'application avec vos identifiants.
+            
+            Pour rappel, votre nom d'utilisateur est : $userName
             
             Cordialement,
             Le gestionnaire

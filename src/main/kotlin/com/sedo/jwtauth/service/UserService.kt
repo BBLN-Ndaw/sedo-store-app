@@ -1,6 +1,8 @@
 package com.sedo.jwtauth.service
 
 import com.sedo.jwtauth.constants.Constants.Endpoints.FRONT_END_CREATE_PASSWORD
+import com.sedo.jwtauth.constants.Constants.Roles.CUSTOMER
+import com.sedo.jwtauth.event.CreateUserRequestEvent
 import com.sedo.jwtauth.exception.DuplicateUsernameException
 import com.sedo.jwtauth.exception.InvalidPasswordException
 import com.sedo.jwtauth.exception.UserEmailNotFoundException
@@ -15,6 +17,7 @@ import com.sedo.jwtauth.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -47,7 +50,9 @@ class UserService @Autowired constructor(
     private val mongoTemplate: MongoTemplate,
     private val passwordEncoder: BCryptPasswordEncoder,
     private val emailService: EmailService,
-    private val createPasswordTokenService: CreatePasswordTokenService) {
+    private val createPasswordTokenService: CreatePasswordTokenService,
+    private val applicationEventPublisher: ApplicationEventPublisher,
+) {
 
     private val logger = LoggerFactory.getLogger(UserService::class.java)
 
@@ -118,6 +123,13 @@ class UserService @Autowired constructor(
         return userRepository.findAll()
     }
 
+    /**
+     * Retrieves a user by their ID.
+     *
+     * @param id ID of the user to retrieve
+     * @return User entity
+     * @throws UserNotFoundException if user doesn't exist
+     */
     fun getUserById(id: String): User {
         logger.debug("Retrieving user with ID: {}", id)
         return userRepository.findById(id).getOrNull()
@@ -127,6 +139,13 @@ class UserService @Autowired constructor(
             }
     }
 
+    /**
+     * Retrieves a user by their username.
+     *
+     * @param username Username of the user to retrieve
+     * @return User entity
+     * @throws UserNotFoundException if user doesn't exist
+     */
     fun getUserByUsername(username: String): User {
         logger.debug("Retrieving user: {}", username)
         return userRepository.findByUserName(username)
@@ -136,6 +155,13 @@ class UserService @Autowired constructor(
             }
     }
 
+    /**
+     * Creates a new user in the system.
+     *
+     * @param createUserDto User data for creation
+     * @return Created User entity
+     * @throws DuplicateUsernameException if username already exists
+     */
     fun createUser(createUserDto: UserDto): User {
         logger.info("Creating new user: {} with role: {}", createUserDto.userName, createUserDto.roles.joinToString())
         
@@ -159,23 +185,52 @@ class UserService @Autowired constructor(
         val savedUser = userRepository.save(user)
         logger.info("User created successfully: {} (ID: {})", savedUser.userName, savedUser.id)
 
-        // Créer le token de création de mot de passe et envoyer l'email
-        try {
-            val token = createPasswordTokenService.createPasswordToken(savedUser.id!!)
-            emailService.sendPasswordCreationEmail(
-                savedUser.email,
-                savedUser.firstName,
-                savedUser.lastName,
-                token
-            )
-            logger.info("Password creation email sent to user: {}", savedUser.email)
-        } catch (e: Exception) {
-            logger.error("Failed to send password creation email for user: {}", savedUser.userName, e)
-        }
-
+        // Publish event to send email for setting password
+        publishCreateUserEvent(savedUser)
         return savedUser
     }
 
+    /**
+     * Registers a new user with default role and inactive status.
+     *
+     * @param user User entity containing registration details
+     * @return Registered User entity
+     * @throws DuplicateUsernameException if username already exists
+     */
+    fun registerUser(user: User): User {
+        logger.info("Registering new user: {}", user.userName)
+
+        userRepository.findByUserName(user.userName)?.let {
+            logger.warn("Attempt to register existing user: {}", user.userName)
+            throw DuplicateUsernameException(user.userName)
+        }
+
+        val user = User(
+            userName = user.userName,
+            password = passwordEncoder.encode(generateRandomPassword()),
+            firstName = user.firstName,
+            lastName = user.lastName,
+            address = user.address,
+            email = user.email,
+            numTel = user.numTel,
+            isActive = false, // inactive until email verification
+            roles = listOf(CUSTOMER) // customer role by default because self-registration
+        )
+
+        val savedUser = userRepository.save(user)
+        logger.info("User registered successfully: {} (ID: {})", savedUser.userName, savedUser.id)
+        // Publish event to send email for setting password
+        publishCreateUserEvent(savedUser)
+        return savedUser
+    }
+
+    /**
+     * Sends a password reset email to the user.
+     *
+     * @param email Email address of the user requesting password reset
+     * @return PasswordCreationResponseDto indicating email sent status
+     * @throws UserEmailNotFoundException if email doesn't exist
+     */
     fun sendEmailToResetPassword(email: String): PasswordCreationResponseDto {
         logger.info("Initiating password reset for email: {}", email)
         val user = userRepository.findByEmail(email)
@@ -200,6 +255,14 @@ class UserService @Autowired constructor(
         }
     }
 
+    /**
+     * Updates the active status of a user.
+     *
+     * @param userId ID of the user to update
+     * @param action ActionDto containing the desired status action
+     * @return Updated User entity
+     * @throws UserNotFoundException if user doesn't exist
+     */
     fun updateStatus(userId: String, action: ActionDto): User {
         logger.info("Updating status: {} for user {}", action, userId)
         val user = getUserById(userId)
@@ -209,8 +272,20 @@ class UserService @Autowired constructor(
         return updatedUser
     }
 
-
-
+    /**
+     * Updates user information.
+     *
+     * @param idOldUser ID of the user to update
+     * @param userName New username (optional)
+     * @param firstName New first name (optional)
+     * @param lastName New last name (optional)
+     * @param address New address (optional)
+     * @param email New email (optional)
+     * @param isActive New active status (optional)
+     * @param roles New roles (optional)
+     * @return Updated User entity
+     * @throws UserNotFoundException if user doesn't exist
+     */
     fun updateUser(idOldUser: String, userName: String?, firstName: String?, lastName: String?, address: Address?, email: String?, isActive: Boolean?, roles: List<String>?): User {
         logger.info("Updating user ID: {}", idOldUser)
         val user = getUserById(idOldUser)
@@ -227,6 +302,16 @@ class UserService @Autowired constructor(
         return updatedUser
     }
 
+    /**
+     * Updates the password for a user.
+     *
+     * @param id ID of the user to update
+     * @param currentPassword Current password for verification
+     * @param newPassword New password to set
+     * @return UpdatePasswordDto containing the password update details
+     * @throws InvalidPasswordException if current password is incorrect
+     * @throws UserNotFoundException if user doesn't exist
+     */
     fun updatePassword(id: String, currentPassword: String, newPassword: String): UpdatePasswordDto {
         logger.info("Updating password for user ID: {}", id)
         
@@ -243,6 +328,21 @@ class UserService @Autowired constructor(
         return UpdatePasswordDto(currentPassword = currentPassword, newPassword = newPassword)
     }
 
+    fun deleteByUserName(userName: String) {
+        logger.info("Deleting user: {}", userName)
+        val user = getUserByUsername(userName)
+        userRepository.deleteById(user.id!!)
+        logger.info("User deleted successfully: {}", userName)
+    }
+
+    /**
+     * Sets a new password for a user using a valid token.
+     *
+     * @param token Password reset token
+     * @param newPassword New password to set
+     * @return Updated User entity
+     * @throws InvalidPasswordException if token is invalid or expired
+     */
     fun setPasswordWithToken(token: String, newPassword: String): User {
         logger.info("Setting password with token")
 
@@ -259,6 +359,12 @@ class UserService @Autowired constructor(
         return updatedUser
     }
 
+    /**
+     * Validates a password reset token and generates the appropriate redirect URL.
+     *
+     * @param token Password reset token
+     * @return Redirect URL for setting password or error page
+     */
     fun validateTokenAndGetRedirectUrl(token: String): String {
         logger.info("Validating token and generating redirect URL")
 
@@ -272,6 +378,9 @@ class UserService @Autowired constructor(
         }
     }
 
+    /**
+     *  Helper method to build the password set URL with query parameters.
+     */
     private fun buildSetPasswordUrl(frontendUrl: String, user: User, token: String): String {
         val params = mapOf(
             "valid" to "true",
@@ -282,14 +391,14 @@ class UserService @Autowired constructor(
             "token" to token
         )
 
-        println("baba build success url")
-
         val queryString = params.entries.joinToString("&") { "${it.key}=${it.value}" }
         return "$frontendUrl$FRONT_END_CREATE_PASSWORD?$queryString"
     }
 
+    /**
+     *  Helper method to build the error URL with query parameters.
+     */
     private fun buildErrorUrl(frontendUrl: String): String {
-        println("yaya build error url")
         val params = mapOf(
             "valid" to "false",
             "message" to "Token+invalide+ou+expire"
@@ -299,6 +408,13 @@ class UserService @Autowired constructor(
         return "$frontendUrl$FRONT_END_CREATE_PASSWORD?$queryString"
     }
 
+    /**
+     * Deletes a user by their ID.
+     *
+     * @param id ID of the user to delete
+     * @return Deleted User entity
+     * @throws UserNotFoundException if user doesn't exist
+     */
     fun deleteUser(id: String): User {
         logger.info("Deleting user ID: {}", id)
         if (!userRepository.existsById(id)) {
@@ -311,7 +427,28 @@ class UserService @Autowired constructor(
         return user
     }
 
+    /**
+     * Helper method to generate a random password.
+     * This is used when creating a new user to set an initial password
+     * before they set their own password via email link.
+     */
     private fun generateRandomPassword(): String{
         return "${UUID.randomUUID()}";
+    }
+
+    /**
+     * Publishes an event to send a password creation email to the user.
+     *
+     * @param user User entity to send the email to
+     */
+    private fun publishCreateUserEvent(user: User) {
+        val token = createPasswordTokenService.createPasswordToken(user.id!!)
+        applicationEventPublisher.publishEvent(CreateUserRequestEvent(
+                userName = user.userName,
+                firstName =  user.firstName,
+                lastName = user.lastName,
+                email = user.email,
+                token
+        ))
     }
 }
