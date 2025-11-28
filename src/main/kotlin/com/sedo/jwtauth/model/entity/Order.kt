@@ -19,6 +19,7 @@ data class Order(
     val orderNumber: String,
     val customerUserName: String,
     val customerEmail: String? = null,
+    val customerNumTel: String? = null,
     val status: OrderStatus,
     val totalAmount: BigDecimal,
     val subtotal: BigDecimal,

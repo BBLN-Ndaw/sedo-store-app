@@ -20,6 +20,8 @@ data class OrderDto(
 
     val customerEmail: String? = null,
 
+    val customerNumTel: String? = null,
+
     @field:NotNull(message = "Order status is required")
     val status: OrderStatus,
 
@@ -63,24 +65,4 @@ data class OrderDto(
     val paymentOrderId: String? = null, // ID de la transaction de paiement associée
 
     val createdAt: Instant? = null
-)
-
-data class UpdateOrderDto(val newStatus: OrderStatus, val orderId: String)
-
-
-data class CreateOrderRequest(
-    @field:NotEmpty(message = "Order must have at least one item")
-    val items: List<OrderItemRequest>,
-    
-    val paymentMethod: PaymentMethod,
-    val notes: String? = null,
-    val pickupDate: Instant? = null
-)
-
-data class OrderItemRequest(
-    @field:NotNull(message = "Product ID is required")
-    val productId: String,
-    
-    @field:NotNull(message = "Quantity is required")
-    val quantity: Int
 )

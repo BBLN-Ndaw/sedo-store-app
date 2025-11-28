@@ -11,6 +11,7 @@ fun Order.toDto(): OrderDto =
         orderNumber = this.orderNumber,
         customerName = this.customerUserName,
         customerEmail = this.customerEmail,
+        customerNumTel = this.customerNumTel,
         status = this.status,
         totalAmount = this.totalAmount,
         subtotal = this.subtotal,

@@ -106,7 +106,6 @@ class OrderController(
      *
      * @param customerUserName Username of the customer whose orders to retrieve
      * @return ResponseEntity containing list of customer's OrderDto objects
-     * @throws CustomerNotFoundException if customer doesn't exist
      *
      * Security: Requires ADMIN or EMPLOYEE role for accessing customer order data
      */
@@ -124,8 +123,6 @@ class OrderController(
      *
      * @param cart Valid CartDto containing items, quantities, and delivery information
      * @return ResponseEntity with HTTP 201 status containing created Order entity
-     * @throws InsufficientInventoryException if requested quantities exceed stock
-     * @throws ValidationException if cart data is invalid
      *
      * Security: Accessible to authenticated customers
      */
@@ -143,8 +140,7 @@ class OrderController(
      *
      * @param orderId Unique identifier of the order to capture payment for
      * @return ResponseEntity containing PayPal capture response details
-     * @throws OrderNotFoundException if order doesn't exist
-     * @throws PaymentProcessingException if payment capture fails
+     * @throws com.sedo.jwtauth.exception.OrderNotFoundException if order doesn't exist
      *
      * Security: Accessible to authenticated customers for their own orders
      */
@@ -162,8 +158,7 @@ class OrderController(
      * @param id Unique identifier of the order to update
      * @param newOrderStatus Request containing new status and optional notes
      * @return ResponseEntity containing updated OrderDto
-     * @throws OrderNotFoundException if order doesn't exist
-     * @throws InvalidStatusTransitionException if status change is not allowed
+     * @throws com.sedo.jwtauth.exception.OrderNotFoundException if order doesn't exist
      *
      * Security: Requires ADMIN or EMPLOYEE role for order status management
      */
@@ -184,8 +179,7 @@ class OrderController(
      *
      * @param id Unique identifier of the order to cancel
      * @return ResponseEntity containing cancelled OrderDto
-     * @throws OrderNotFoundException if order doesn't exist
-     * @throws OrderCancellationException if order cannot be cancelled
+     * @throws com.sedo.jwtauth.exception.OrderNotFoundException if order doesn't exist
      *
      * Security: Accessible to customers for their own orders, or ADMIN/EMPLOYEE for any order
      */
@@ -201,7 +195,7 @@ class OrderController(
      *
      * @param id Unique identifier of the order to retrieve
      * @return ResponseEntity containing detailed OrderDto
-     * @throws OrderNotFoundException if order doesn't exist
+     * @throws com.sedo.jwtauth.exception.OrderNotFoundException if order doesn't exist
      *
      * Security: Customers can access their own orders, ADMIN/EMPLOYEE can access any order
      */

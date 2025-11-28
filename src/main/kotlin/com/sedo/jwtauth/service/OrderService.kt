@@ -44,6 +44,9 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.temporal.TemporalQueries.zone
 import java.util.UUID
 
 /**
@@ -105,6 +108,7 @@ class OrderService(
     private val productRepository: ProductRepository,
     private val auditService: AuditService,
     private val payPalService: PayPalService,
+    private val userService: UserService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val mongoTemplate: MongoTemplate
 ) {
@@ -168,8 +172,11 @@ class OrderService(
         }
         if (!period.isNullOrBlank()) {
             val now = Instant.now()
+            val zone = ZoneId.systemDefault()
+            val startOfDay: Instant = LocalDate.now(zone).atStartOfDay(zone).toInstant()
+            val startOfTomorrow: Instant = LocalDate.now(zone).plusDays(1).atStartOfDay(zone).toInstant()
             val periodCriteria = when (period) {
-                "today" -> where("createdAt").gte(now.minus(Duration.ofDays(1)))
+                "today" -> where("createdAt").gte(startOfDay).lt(startOfTomorrow)
                 "week" -> where("createdAt").gte(now.minus(Duration.ofDays(7)))
                 "month" -> where("createdAt").gte(now.minus(Duration.ofDays(30)))
                 "quarter" -> where("createdAt").gte(now.minus(Duration.ofDays(90)))
@@ -257,21 +264,23 @@ class OrderService(
         val captureResponse = payPalService.captureOrder(orderId)
         logger.info("PayPal order captured successfully: {}", captureResponse)
         val order = orderRepository.findByPaymentOrderId(orderId).firstOrNull() ?: throw ResourceNotFoundException("Order not found with ID: $orderId")
+        val user = userService.getUserByUsername(order.customerUserName)
         val updatedOrder = order.copy(
-            customerEmail = captureResponse.payer.email_address,
+            customerEmail = user.email,
+            customerNumTel = user.numTel,
             status = CONFIRMED,
             processedByUser = "SYSTEM",
             shippingAddress = Address(
+                street = user.address.street,
+                city = user.address.city,
+                postalCode = user.address.postalCode,
+                country = user.address.country,
+            ),
+            billingAddress = Address(
                 street = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.address_line_1 ?: "N/A",
                 city = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.admin_area_2 ?: "N/A",
                 postalCode = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.postal_code ?: "N/A",
-                country = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.country_code ?: "N/A",
-            ),
-            billingAddress = Address(
-                street = captureResponse.payer.address.address_line_1 ?: "N/A",
-                city = captureResponse.payer.address.admin_area_2 ?: "N/A",
-                postalCode = captureResponse.payer.address.postal_code ?: "N/A",
-                country = captureResponse.payer.address.country_code
+                country = captureResponse.purchase_units.firstOrNull()?.shipping?.address?.country_code ?: "N/A"
             ),
             paymentStatus = PaymentStatus.COMPLETED).normalizeAmounts()
 
@@ -288,12 +297,12 @@ class OrderService(
         )
 
         // Publier l'événement de génération de facture PDF et d'envoi par email
-        val payerFullName = captureResponse.payer.name.given_name + " " + captureResponse.payer.name.surname
+        val payerFullName = user.firstName + " " + user.lastName
         applicationEventPublisher.publishEvent(
             InvoiceGenerationRequestedEvent(
                 order = updatedOrder,
                 payerFullName = payerFullName,
-                payerEmail = captureResponse.payer.email_address
+                payerEmail = user.email
             )
         )
 
