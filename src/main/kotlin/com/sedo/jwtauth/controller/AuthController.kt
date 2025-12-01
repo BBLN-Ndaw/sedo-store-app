@@ -54,7 +54,7 @@ class AuthController(
      * @return ResponseEntity containing new JWT tokens
      */
     @PostMapping(REFRESH_TOKEN)
-    fun refreshToken(@CookieValue(value = "refresh_token") refreshToken: String, response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
+    fun refreshToken(@CookieValue(value = "refresh_token", required = false) refreshToken: String?, response: HttpServletResponse): ResponseEntity<LoginResponseDto> {
         return authService.refreshToken(refreshToken, response)
             .let {ResponseEntity.ok(it) }
     }

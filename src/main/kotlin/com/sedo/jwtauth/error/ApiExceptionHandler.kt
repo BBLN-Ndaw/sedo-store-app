@@ -141,7 +141,7 @@ class ApiExceptionHandler {
         logger.warn("Refresh Token Failed : ${ex.message}")
         val errorResponse = ErrorResponseDto(
             error = "Refresh Token Failed",
-            message = "Refresh Token Failed due to revoked token",
+            message = ex.message!!,
             status = HttpStatus.UNAUTHORIZED.value(),
             path = request.requestURI
         )

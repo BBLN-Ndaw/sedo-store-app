@@ -74,9 +74,10 @@ class AuthService @Autowired constructor(
      * @param refreshToken The refresh token to validate
      * @param response HTTP response for setting new cookies
      * @return LoginResponseDto containing new access token and user information
-     * @throws RefreshTokenFailedException if refresh token is invalid or expired
+     * @throws RefreshTokenFailedException if refresh token is null, invalid or expired
      */
-    fun refreshToken(refreshToken: String, response: HttpServletResponse): LoginResponseDto {
+    fun refreshToken(refreshToken: String?, response: HttpServletResponse): LoginResponseDto {
+        if(refreshToken.isNullOrEmpty()) throw RefreshTokenFailedException("No refresh token provided")
         return if(refreshTokenService.isValidateToken(refreshToken)) {
             val userName = jwtUtil.validateToken(refreshToken)
             refreshTokenService.deleteAllByUserName(userName)
